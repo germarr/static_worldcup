@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FIFA World Cup 2026 - Group Matches Grid</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        color-scheme: light;
+      }
+      body {
+        font-family: "Space Grotesk", sans-serif;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-gradient-to-br from-amber-50 via-slate-50 to-cyan-100 text-slate-900">
+    <header class="px-6 py-10 sm:px-10">
+      <div class="mx-auto max-w-6xl">
+        <div class="flex flex-col gap-4">
+          <div class="inline-flex items-center gap-2 text-xs uppercase tracking-[0.35em] text-slate-500">
+            <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+            World Cup 2026
+          </div>
+          <h1 class="text-3xl font-semibold sm:text-5xl">Group Stage Matches</h1>
+          <p class="max-w-2xl text-sm text-slate-600 sm:text-base">
+            All group-stage fixtures with kick-off times and stadiums. Picks are made in a simple
+            grid, ordered by match number.
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <main class="px-6 pb-16 sm:px-10">
+      <div id="status" class="mx-auto max-w-6xl rounded-2xl border border-slate-200 bg-white/70 p-6 text-sm text-slate-500">
+        Loading matches...
+      </div>
+
+      <section class="mx-auto mt-2 max-w-6xl space-y-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="text-xs uppercase tracking-[0.35em] text-slate-400">Groups A-L</div>
+            <button
+              id="randomize-results"
+              class="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-600 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm"
+              type="button"
+            >
+              Randomize Picks
+            </button>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <div id="pick-summary" class="text-xs text-slate-500">Missing picks: 0</div>
+          <div class="h-2 w-full rounded-full bg-slate-100">
+            <div id="pick-progress" class="h-2 rounded-full bg-emerald-200" style="width: 0%"></div>
+          </div>
+        </div>
+        
+      </section>
+
+      <section class="mx-auto mt-10 max-w-6xl space-y-4">
+        <div class="rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-sm">
+          <div class="overflow-x-auto">
+            <table class="w-full min-w-[860px] text-left text-xs">
+              <thead class="bg-slate-50 text-[11px] uppercase tracking-widest text-slate-400">
+                <tr>
+                  <th class="px-3 py-2 text-center">Group</th>
+                  <th class="px-3 py-2 text-center">Match</th>
+                  <th class="px-3 py-2">Status</th>
+                  <th class="px-3 py-2">Date</th>
+                  <th class="px-3 py-2">Home</th>
+                  <th class="px-3 py-2">Away</th>
+                  <th class="px-3 py-2">Stadium</th>
+                  <th class="px-3 py-2">Location</th>
+                  <th class="px-3 py-2 text-center">Pick</th>
+                </tr>
+              </thead>
+              <tbody id="groups" class="divide-y divide-slate-100 text-slate-700"></tbody>
+            </table>
+          </div>
+        </div>
+        <p class="text-[11px] text-slate-400">Pick a home win, draw, or away win for each match.</p>
+      </section>
+      
+
+      <section class="mx-auto mt-10 max-w-6xl space-y-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 class="text-2xl font-semibold">Group Standings</h2>
+            <p class="text-sm text-slate-600">Top two and best third from each group based on your picks.</p>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+          <span class="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50/60 px-3 py-1">
+            <span class="h-2 w-2 rounded-full bg-emerald-300"></span>
+            Top 2
+          </span>
+          <span class="inline-flex items-center gap-2 rounded-full border border-amber-100 bg-amber-50/60 px-3 py-1">
+            <span class="h-2 w-2 rounded-full bg-amber-300"></span>
+            Third
+          </span>
+        </div>
+
+        <div id="standings" class="grid gap-4 md:grid-cols-2 xl:grid-cols-4"></div>
+      </section>
+      
+
+      <section class="mx-auto mt-12 max-w-6xl space-y-4">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 class="text-lg font-semibold">Third-Place Rankings</h3>
+              <p class="text-xs text-slate-500">
+                All third-place teams ranked by points, then goal difference. Drag and drop rows to adjust the order.
+              </p>
+            </div>
+            <span class="rounded-full bg-slate-100 px-3 py-1 text-[11px] uppercase tracking-widest text-slate-500">Top 8 Advance</span>
+          </div>
+          <div class="mt-4 overflow-hidden rounded-xl border border-slate-100">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-[11px] uppercase tracking-widest text-slate-400">
+                <tr>
+                  <th class="px-3 py-2 text-center">Ranking</th>
+                  <th class="px-3 py-2">Team</th>
+                  <th class="px-3 py-2 text-center">Group</th>
+                  <th class="px-3 py-2 text-center">P</th>
+                  <th class="px-3 py-2 text-center">GD</th>
+                  <th class="px-3 py-2 text-center">Pts</th>
+                </tr>
+              </thead>
+              <tbody id="third-place-table" class="divide-y divide-slate-100 text-slate-700"></tbody>
+            </table>
+          </div>
+          <p class="mt-3 text-[11px] text-slate-400">Highlighted rows indicate the top eight third-place teams.</p>
+        </div>
+      </section>
+
+      <section class="mx-auto mt-12 max-w-6xl space-y-4">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 class="text-2xl font-semibold">Knockout Bracket</h2>
+            <p class="text-sm text-slate-600">Pick winners to advance through the knockout rounds.</p>
+          </div>
+          <div class="text-xs uppercase tracking-[0.35em] text-slate-400">Round of 32 - Final</div>
+        </div>
+        <div id="knockout" class="grid gap-4 overflow-x-auto pb-2 lg:grid-cols-5">
+          <div class="rounded-2xl border border-slate-200 bg-white/70 p-4 text-sm text-slate-500">Loading bracket...</div>
+        </div>
+      </section>
+    </main>
+
+    <template id="standings-template">
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold"></h3>
+          <span class="rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-emerald-700">Top 4</span>
+        </div>
+        <div class="mt-4 overflow-hidden rounded-xl border border-slate-100">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-[11px] uppercase tracking-widest text-slate-400">
+              <tr>
+                <th class="px-3 py-2">Team</th>
+                <th class="px-3 py-2 text-center">P</th>
+                <th class="px-3 py-2 text-center">GD</th>
+                <th class="px-3 py-2 text-center">Pts</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-slate-700"></tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-[11px] text-slate-400">Sorted by points, goal difference, goals for.</p>
+      </article>
+    </template>
+
+    <template id="knockout-template">
+      <article class="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+        <div class="flex items-center justify-between text-[11px] uppercase tracking-widest text-slate-400">
+          <span data-role="round"></span>
+          <span data-role="match-number"></span>
+        </div>
+        <div class="mt-3 space-y-2 text-sm">
+          <div class="flex items-center gap-2">
+            <img data-role="home-flag" class="h-4 w-6 rounded-sm border border-slate-200 object-cover" alt="" />
+            <span data-role="home-name" class="font-medium"></span>
+          </div>
+          <div class="flex items-center gap-2">
+            <img data-role="away-flag" class="h-4 w-6 rounded-sm border border-slate-200 object-cover" alt="" />
+            <span data-role="away-name" class="font-medium"></span>
+          </div>
+        </div>
+        <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+          <span class="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Pick winner</span>
+          <div data-role="pick-group" class="flex flex-wrap gap-2"></div>
+        </div>
+        <div class="mt-3 space-y-1 text-[11px] text-slate-500">
+          <div data-role="match-date"></div>
+          <div data-role="stadium"></div>
+        </div>
+      </article>
+    </template>
+
+    <script type="application/json" id="matches-data">
+[{"actual_away_score":2,"actual_home_score":0,"actual_winner_team_id":null,"away_slot":null,"away_team_id":4,"created_at":"2026-01-19T22:01:48.077211","group_letter":"A","home_slot":null,"home_team_id":1,"id":1,"match_number":1,"round":"group_stage","scheduled_datetime":"2026-06-11T15:00:00","stadium_id":12,"status":"completed","updated_at":"2026-01-19T22:15:04.645290"},{"actual_away_score":4,"actual_home_score":1,"actual_winner_team_id":null,"away_slot":null,"away_team_id":3,"created_at":"2026-01-19T22:01:48.093175","group_letter":"A","home_slot":null,"home_team_id":2,"id":2,"match_number":2,"round":"group_stage","scheduled_datetime":"2026-06-11T22:00:00","stadium_id":13,"status":"completed","updated_at":"2026-01-19T22:15:04.652617"},{"actual_away_score":2,"actual_home_score":0,"actual_winner_team_id":null,"away_slot":null,"away_team_id":8,"created_at":"2026-01-19T22:01:48.094135","group_letter":"B","home_slot":null,"home_team_id":5,"id":3,"match_number":3,"round":"group_stage","scheduled_datetime":"2026-06-12T15:00:00","stadium_id":15,"status":"completed","updated_at":"2026-01-19T22:15:04.655078"},{"actual_away_score":1,"actual_home_score":3,"actual_winner_team_id":null,"away_slot":null,"away_team_id":16,"created_at":"2026-01-19T22:01:48.094746","group_letter":"D","home_slot":null,"home_team_id":13,"id":4,"match_number":4,"round":"group_stage","scheduled_datetime":"2026-06-12T21:00:00","stadium_id":3,"status":"completed","updated_at":"2026-01-19T22:15:04.655657"},{"actual_away_score":0,"actual_home_score":3,"actual_winner_team_id":null,"away_slot":null,"away_team_id":7,"created_at":"2026-01-19T22:01:48.095649","group_letter":"B","home_slot":null,"home_team_id":6,"id":5,"match_number":5,"round":"group_stage","scheduled_datetime":"2026-06-13T15:00:00","stadium_id":6,"status":"completed","updated_at":"2026-01-19T22:15:04.656241"},{"actual_away_score":3,"actual_home_score":1,"actual_winner_team_id":null,"away_slot":null,"away_team_id":12,"created_at":"2026-01-19T22:01:48.096187","group_letter":"C","home_slot":null,"home_team_id":9,"id":6,"match_number":6,"round":"group_stage","scheduled_datetime":"2026-06-13T18:00:00","stadium_id":1,"status":"completed","updated_at":"2026-01-19T22:15:04.656737"},{"actual_away_score":1,"actual_home_score":0,"actual_winner_team_id":null,"away_slot":null,"away_team_id":11,"created_at":"2026-01-19T22:01:48.096727","group_letter":"C","home_slot":null,"home_team_id":10,"id":7,"match_number":7,"round":"group_stage","scheduled_datetime":"2026-06-13T21:00:00","stadium_id":9,"status":"completed","updated_at":"2026-01-19T22:15:04.657229"},{"actual_away_score":0,"actual_home_score":0,"actual_winner_team_id":null,"away_slot":null,"away_team_id":15,"created_at":"2026-01-19T22:01:48.097237","group_letter":"D","home_slot":null,"home_team_id":14,"id":8,"match_number":8,"round":"group_stage","scheduled_datetime":"2026-06-14T00:00:00","stadium_id":16,"status":"completed","updated_at":"2026-01-19T22:15:04.657835"},{"actual_away_score":0,"actual_home_score":4,"actual_winner_team_id":null,"away_slot":null,"away_team_id":20,"created_at":"2026-01-19T22:01:48.097745","group_letter":"E","home_slot":null,"home_team_id":17,"id":9,"match_number":9,"round":"group_stage","scheduled_datetime":"2026-06-14T13:00:00","stadium_id":7,"status":"completed","updated_at":"2026-01-19T22:15:04.658249"},{"actual_away_score":2,"actual_home_score":4,"actual_winner_team_id":null,"away_slot":null,"away_team_id":24,"created_at":"2026-01-19T22:01:48.098278","group_letter":"F","home_slot":null,"home_team_id":21,"id":10,"match_number":10,"round":"group_stage","scheduled_datetime":"2026-06-14T16:00:00","stadium_id":2,"status":"completed","updated_at":"2026-01-19T22:15:04.659073"},{"actual_away_score":0,"actual_home_score":4,"actual_winner_team_id":null,"away_slot":null,"away_team_id":19,"created_at":"2026-01-19T22:01:48.098818","group_letter":"E","home_slot":null,"home_team_id":18,"id":11,"match_number":11,"round":"group_stage","scheduled_datetime":"2026-06-14T19:00:00","stadium_id":8,"status":"completed","updated_at":"2026-01-19T22:15:04.659823"},{"actual_away_score":3,"actual_home_score":4,"actual_winner_team_id":null,"away_slot":null,"away_team_id":23,"created_at":"2026-01-19T22:01:48.099334","group_letter":"F","home_slot":null,"home_team_id":22,"id":12,"match_number":12,"round":"group_stage","scheduled_datetime":"2026-06-14T22:00:00","stadium_id":14,"status":"completed","updated_at":"2026-01-19T22:15:04.660142"},{"actual_away_score":0,"actual_home_score":0,"actual_winner_team_id":null,"away_slot":null,"away_team_id":32,"created_at":"2026-01-19T22:01:48.099847","group_letter":"H","home_slot":null,"home_team_id":29,"id":13,"match_number":13,"round":"group_stage","scheduled_datetime":"2026-06-15T12:00:00","stadium_id":5,"status":"completed","updated_at":"2026-01-19T22:15:04.660461"},{"actual_away_score":2,"actual_home_score":4,"actual_winner_team_id":null,"away_slot":null,"away_team_id":28,"created_at":"2026-01-19T22:01:48.100349","group_letter":"G","home_slot":null,"home_team_id":25,"id":14,"match_number":14,"round":"group_stage","scheduled_datetime":"2026-06-15T15:00:00","stadium_id":11,"status":"completed","updated_at":"2026-01-19T22:15:04.660850"},{"actual_away_score":1,"actual_home_score":3,"actual_winner_team_id":null,"away_slot":null,"away_team_id":31,"created_at":"2026-01-19T22:01:48.100868","group_letter":"H","home_slot":null,"home_team_id":30,"id":15,"match_number":15,"round":"group_stage","scheduled_datetime":"2026-06-15T18:00:00","stadium_id":4,"status":"completed","updated_at":"2026-01-19T22:15:04.661166"},{"actual_away_score":1,"actual_home_score":4,"actual_winner_team_id":null,"away_slot":null,"away_team_id":27,"created_at":"2026-01-19T22:01:48.101378","group_letter":"G","home_slot":null,"home_team_id":26,"id":16,"match_number":16,"round":"group_stage","scheduled_datetime":"2026-06-15T21:00:00","stadium_id":3,"status":"completed","updated_at":"2026-01-19T22:15:04.661489"},{"actual_away_score":1,"actual_home_score":1,"actual_winner_team_id":null,"away_slot":null,"away_team_id":36,"created_at":"2026-01-19T22:01:48.101866","group_letter":"I","home_slot":null,"home_team_id":33,"id":17,"match_number":17,"round":"group_stage","scheduled_datetime":"2026-06-16T15:00:00","stadium_id":1,"status":"completed","updated_at":"2026-01-19T22:15:04.661768"},{"actual_away_score":0,"actual_home_score":4,"actual_winner_team_id":null,"away_slot":null,"away_team_id":35,"created_at":"2026-01-19T22:01:48.102369","group_letter":"I","home_slot":null,"home_team_id":34,"id":18,"match_number":18,"round":"group_stage","scheduled_datetime":"2026-06-16T18:00:00","stadium_id":9,"status":"completed","updated_at":"2026-01-19T22:15:04.662046"},{"actual_away_score":4,"actual_home_score":3,"actual_winner_team_id":null,"away_slot":null,"away_team_id":40,"created_at":"2026-01-19T22:01:48.102866","group_letter":"J","home_slot":null,"home_team_id":37,"id":19,"match_number":19,"round":"group_stage","scheduled_datetime":"2026-06-16T21:00:00","stadium_id":10,"status":"completed","updated_at":"2026-01-19T22:15:04.662327"},{"actual_away_score":4,"actual_home_score":3,"actual_winner_team_id":null,"away_slot":null,"away_team_id":39,"created_at":"2026-01-19T22:01:48.103365","group_letter":"J","home_slot":null,"home_team_id":38,"id":20,"match_number":20,"round":"group_stage","scheduled_datetime":"2026-06-17T00:00:00","stadium_id":6,"status":"completed","updated_at":"2026-01-19T22:15:04.662779"},{"actual_away_score":3,"actual_home_score":2,"actual_winner_team_id":null,"away_slot":null,"away_team_id":44,"created_at":"2026-01-19T22:01:48.103852","group_letter":"K","home_slot":null,"home_team_id":41,"id":21,"match_number":21,"round":"group_stage","scheduled_datetime":"2026-06-17T13:00:00","stadium_id":7,"status":"completed","updated_at":"2026-01-19T22:15:04.663181"},{"actual_away_score":4,"actual_home_score":2,"actual_winner_team_id":null,"away_slot":null,"away_team_id":48,"created_at":"2026-01-19T22:01:48.104346","group_letter":"L","home_slot":null,"home_team_id":45,"id":22,"match_number":22,"round":"group_stage","scheduled_datetime":"2026-06-17T16:00:00","stadium_id":2,"status":"completed","updated_at":"2026-01-19T22:15:04.663542"},{"actual_away_score":3,"actual_home_score":3,"actual_winner_team_id":null,"away_slot":null,"away_team_id":47,"created_at":"2026-01-19T22:01:48.104875","group_letter":"L","home_slot":null,"home_team_id":46,"id":23,"match_number":23,"round":"group_stage","scheduled_datetime":"2026-06-17T19:00:00","stadium_id":15,"status":"completed","updated_at":"2026-01-19T22:15:04.663855"},{"actual_away_score":2,"actual_home_score":1,"actual_winner_team_id":null,"away_slot":null,"away_team_id":43,"created_at":"2026-01-19T22:01:48.105394","group_letter":"K","home_slot":null,"home_team_id":42,"id":24,"match_number":24,"round":"group_stage","scheduled_datetime":"2026-06-17T22:00:00","stadium_id":12,"status":"completed","updated_at":"2026-01-19T22:15:04.664151"},{"actual_away_score":2,"actual_home_score":1,"actual_winner_team_id":null,"away_slot":null,"away_team_id":4,"created_at":"2026-01-19T22:01:48.105904","group_letter":"A","home_slot":null,"home_team_id":3,"id":25,"match_number":25,"round":"group_stage","scheduled_datetime":"2026-06-18T12:00:00","stadium_id":5,"status":"completed","updated_at":"2026-01-19T22:15:04.664440"},{"actual_away_score":0,"actual_home_score":2,"actual_winner_team_id":null,"away_slot":null,"away_team_id":8,"created_at":"2026-01-19T22:01:48.106401","group_letter":"B","home_slot":null,"home_team_id":7,"id":26,"match_number":26,"round":"group_stage","scheduled_datetime":"2026-06-18T15:00:00","stadium_id":3,"status":"completed","updated_at":"2026-01-19T22:15:04.664728"},{"actual_away_score":3,"actual_home_score":2,"actual_winner_team_id":null,"away_slot":null,"away_team_id":6,"created_at":"2026-01-19T22:01:48.106907","group_letter":"B","home_slot":null,"home_team_id":5,"id":27,"match_number":27,"round":"group_stage","scheduled_datetime":"2026-06-18T18:00:00","stadium_id":16,"status":"completed","updated_at":"2026-01-19T22:15:04.665012"},{"actual_away_score":2,"actual_home_score":1,"actual_winner_team_id":null,"away_slot":null,"away_team_id":2,"created_at":"2026-01-19T22:01:48.107429","group_letter":"A","home_slot":null,"home_team_id":1,"id":28,"match_number":28,"round":"group_stage","scheduled_datetime":"2026-06-18T21:00:00","stadium_id":13,"status":"completed","updated_at":"2026-01-19T22:15:04.665306"},{"actual_away_score":4,"actual_home_score":4,"actual_winner_team_id":null,"away_slot":null,"away_team_id":14,"created_at":"2026-01-19T22:01:48.107924","group_letter":"D","home_slot":null,"home_team_id":13,"id":29,"match_number":29,"round":"group_stage","scheduled_datetime":"2026-06-19T15:00:00","stadium_id":11,"status":"completed","updated_at":"2026-01-19T22:15:04.665599"},{"actual_away_score":4,"actual_home_score":1,"actual_winner_team_id":null,"away_slot":null,"away_team_id":12,"created_at":"2026-01-19T22:01:48.108407","group_letter":"C","home_slot":null,"home_team_id":11,"id":30,"match_number":30,"round":"group_stage","scheduled_datetime":"2026-06-19T18:00:00","stadium_id":9,"status":"completed","updated_at":"2026-01-19T22:15:04.666154"},{"actual_away_score":1,"actual_home_score":2,"actual_winner_team_id":null,"away_slot":null,"away_team_id":10,"created_at":"2026-01-19T22:01:48.109536","group_letter":"C","home_slot":null,"home_team_id":9,"id":31,"match_number":31,"round":"group_stage","scheduled_datetime":"2026-06-19T21:00:00","stadium_id":8,"status":"completed","updated_at":"2026-01-19T22:15:04.666672"},{"actual_away_score":1,"actual_home_score":3,"actual_winner_team_id":null,"away_slot":null,"away_team_id":16,"created_at":"2026-01-19T22:01:48.110297","group_letter":"D","home_slot":null,"home_team_id":15,"id":32,"match_number":32,"round":"group_stage","scheduled_datetime":"2026-06-20T00:00:00","stadium_id":6,"status":"completed","updated_at":"2026-01-19T22:15:04.667183"},{"actual_away_score":3,"actual_home_score":0,"actual_winner_team_id":null,"away_slot":null,"away_team_id":22,"created_at":"2026-01-19T22:01:48.110860","group_letter":"F","home_slot":null,"home_team_id":21,"id":33,"match_number":33,"round":"group_stage","scheduled_datetime":"2026-06-20T13:00:00","stadium_id":7,"status":"completed","updated_at":"2026-01-19T22:15:04.667675"},{"actual_away_score":0,"actual_home_score":3,"actual_winner_team_id":null,"away_slot":null,"away_team_id":18,"created_at":"2026-01-19T22:01:48.111392","group_letter":"E","home_slot":null,"home_team_id":17,"id":34,"match_number":34,"round":"group_stage","scheduled_datetime":"2026-06-20T16:00:00","stadium_id":15,"status":"completed","updated_at":"2026-01-19T22:15:04.668096"},{"actual_away_score":4,"actual_home_score":0,"actual_winner_team_id":null,"away_slot":null,"away_team_id":20,"created_at":"2026-01-19T22:01:48.113126","group_letter":"E","home_slot":null,"home_team_id":19,"id":35,"match_number":35,"round":"group_stage","scheduled_datetime":"2026-06-20T20:00:00","stadium_id":10,"status":"completed","updated_at":"2026-01-19T22:15:04.668479"},{"actual_away_score":2,"actual_home_score":2,"actual_winner_team_id":null,"away_slot":null,"away_team_id":24,"created_at":"2026-01-19T22:01:48.114084","group_letter":"F","home_slot":null,"home_team_id":23,"id":36,"match_number":36,"round":"group_stage","scheduled_datetime":"2026-06-21T00:00:00","stadium_id":14,"status":"completed","updated_at":"2026-01-19T22:15:04.668913"},{"actual_away_score":2,"actual_home_score":1,"actual_winner_team_id":null,"away_slot":null,"away_team_id":30,"created_at":"2026-01-19T22:01:48.114670","group_letter":"H","home_slot":null,"home_team_id":29,"id":37,"match_number":37,"round":"group_stage","scheduled_datetime":"2026-06-21T15:00:00","stadium_id":5,"status":"completed","updated_at":"2026-01-19T22:15:04.669330"},{"actual_away_score":3,"actual_home_score":3,"actual_winner_team_id":null,"away_slot":null,"away_team_id":26,"created_at":"2026-01-19T22:01:48.115191","group_letter":"G","home_slot":null,"home_team_id":25,"id":38,"match_number":38,"round":"group_stage","scheduled_datetime":"2026-06-21T18:00:00","stadium_id":3,"status":"completed","updated_at":"2026-01-19T22:15:04.670914"},{"actual_away_score":0,"actual_home_score":0,"actual_winner_team_id":null,"away_slot":null,"away_team_id":32,"created_at":"2026-01-19T22:01:48.116133","group_letter":"H","home_slot":null,"home_team_id":31,"id":39,"match_number":39,"round":"group_stage","scheduled_datetime":"2026-06-21T21:00:00","stadium_id":4,"status":"completed","updated_at":"2026-01-19T22:15:04.672485"},{"actual_away_score":3,"actual_home_score":2,"actual_winner_team_id":null,"away_slot":null,"away_team_id":28,"created_at":"2026-01-19T22:01:48.120073","group_letter":"G","home_slot":null,"home_team_id":27,"id":40,"match_number":40,"round":"group_stage","scheduled_datetime":"2026-06-21T21:00:00","stadium_id":16,"status":"completed","updated_at":"2026-01-19T22:15:04.672945"},{"actual_away_score":2,"actual_home_score":1,"actual_winner_team_id":null,"away_slot":null,"away_team_id":38,"created_at":"2026-01-19T22:01:48.120940","group_letter":"J","home_slot":null,"home_team_id":37,"id":41,"match_number":41,"round":"group_stage","scheduled_datetime":"2026-06-22T13:00:00","stadium_id":2,"status":"completed","updated_at":"2026-01-19T22:15:04.673487"},{"actual_away_score":4,"actual_home_score":1,"actual_winner_team_id":null,"away_slot":null,"away_team_id":34,"created_at":"2026-01-19T22:01:48.121541","group_letter":"I","home_slot":null,"home_team_id":33,"id":42,"match_number":42,"round":"group_stage","scheduled_datetime":"2026-06-22T17:00:00","stadium_id":8,"status":"completed","updated_at":"2026-01-19T22:15:04.673880"},{"actual_away_score":4,"actual_home_score":4,"actual_winner_team_id":null,"away_slot":null,"away_team_id":36,"created_at":"2026-01-19T22:01:48.122096","group_letter":"I","home_slot":null,"home_team_id":35,"id":43,"match_number":43,"round":"group_stage","scheduled_datetime":"2026-06-22T20:00:00","stadium_id":1,"status":"completed","updated_at":"2026-01-19T22:15:04.674257"},{"actual_away_score":2,"actual_home_score":1,"actual_winner_team_id":null,"away_slot":null,"away_team_id":40,"created_at":"2026-01-19T22:01:48.122641","group_letter":"J","home_slot":null,"home_team_id":39,"id":44,"match_number":44,"round":"group_stage","scheduled_datetime":"2026-06-22T23:00:00","stadium_id":6,"status":"completed","updated_at":"2026-01-19T22:15:04.674583"},{"actual_away_score":2,"actual_home_score":3,"actual_winner_team_id":null,"away_slot":null,"away_team_id":42,"created_at":"2026-01-19T22:01:48.123205","group_letter":"K","home_slot":null,"home_team_id":41,"id":45,"match_number":45,"round":"group_stage","scheduled_datetime":"2026-06-23T13:00:00","stadium_id":7,"status":"completed","updated_at":"2026-01-19T22:15:04.674876"},{"actual_away_score":0,"actual_home_score":4,"actual_winner_team_id":null,"away_slot":null,"away_team_id":46,"created_at":"2026-01-19T22:01:48.123743","group_letter":"L","home_slot":null,"home_team_id":45,"id":46,"match_number":46,"round":"group_stage","scheduled_datetime":"2026-06-23T16:00:00","stadium_id":9,"status":"completed","updated_at":"2026-01-19T22:15:04.675166"},{"actual_away_score":1,"actual_home_score":0,"actual_winner_team_id":null,"away_slot":null,"away_team_id":48,"created_at":"2026-01-19T22:01:48.124293","group_letter":"L","home_slot":null,"home_team_id":47,"id":47,"match_number":47,"round":"group_stage","scheduled_datetime":"2026-06-23T19:00:00","stadium_id":15,"status":"completed","updated_at":"2026-01-19T22:15:04.675451"},{"actual_away_score":2,"actual_home_score":3,"actual_winner_team_id":null,"away_slot":null,"away_team_id":44,"created_at":"2026-01-19T22:01:48.124825","group_letter":"K","home_slot":null,"home_team_id":43,"id":48,"match_number":48,"round":"group_stage","scheduled_datetime":"2026-06-23T22:00:00","stadium_id":13,"status":"completed","updated_at":"2026-01-19T22:15:04.675732"},{"actual_away_score":0,"actual_home_score":0,"actual_winner_team_id":null,"away_slot":null,"away_team_id":5,"created_at":"2026-01-19T22:01:48.125360","group_letter":"B","home_slot":null,"home_team_id":7,"id":49,"match_number":49,"round":"group_stage","scheduled_datetime":"2026-06-24T15:00:00","stadium_id":16,"status":"completed","updated_at":"2026-01-19T22:15:04.676011"},{"actual_away_score":0,"actual_home_score":1,"actual_winner_team_id":null,"away_slot":null,"away_team_id":6,"created_at":"2026-01-19T22:01:48.125872","group_letter":"B","home_slot":null,"home_team_id":8,"id":50,"match_number":50,"round":"group_stage","scheduled_datetime":"2026-06-24T15:00:00","stadium_id":11,"status":"completed","updated_at":"2026-01-19T22:15:04.676292"},{"actual_away_score":3,"actual_home_score":0,"actual_winner_team_id":null,"away_slot":null,"away_team_id":9,"created_at":"2026-01-19T22:01:48.126399","group_letter":"C","home_slot":null,"home_team_id":11,"id":51,"match_number":51,"round":"group_stage","scheduled_datetime":"2026-06-24T18:00:00","stadium_id":4,"status":"completed","updated_at":"2026-01-19T22:15:04.676689"},{"actual_away_score":2,"actual_home_score":4,"actual_winner_team_id":null,"away_slot":null,"away_team_id":10,"created_at":"2026-01-19T22:01:48.126940","group_letter":"C","home_slot":null,"home_team_id":12,"id":52,"match_number":52,"round":"group_stage","scheduled_datetime":"2026-06-24T18:00:00","stadium_id":5,"status":"completed","updated_at":"2026-01-19T22:15:04.677134"},{"actual_away_score":4,"actual_home_score":2,"actual_winner_team_id":null,"away_slot":null,"away_team_id":1,"created_at":"2026-01-19T22:01:48.127485","group_letter":"A","home_slot":null,"home_team_id":3,"id":53,"match_number":53,"round":"group_stage","scheduled_datetime":"2026-06-24T21:00:00","stadium_id":12,"status":"completed","updated_at":"2026-01-19T22:15:04.677456"},{"actual_away_score":1,"actual_home_score":1,"actual_winner_team_id":null,"away_slot":null,"away_team_id":2,"created_at":"2026-01-19T22:01:48.128009","group_letter":"A","home_slot":null,"home_team_id":4,"id":54,"match_number":54,"round":"group_stage","scheduled_datetime":"2026-06-24T21:00:00","stadium_id":14,"status":"completed","updated_at":"2026-01-19T22:15:04.677750"},{"actual_away_score":1,"actual_home_score":2,"actual_winner_team_id":null,"away_slot":null,"away_team_id":18,"created_at":"2026-01-19T22:01:48.128547","group_letter":"E","home_slot":null,"home_team_id":20,"id":55,"match_number":55,"round":"group_stage","scheduled_datetime":"2026-06-25T16:00:00","stadium_id":8,"status":"completed","updated_at":"2026-01-19T22:15:04.678066"},{"actual_away_score":0,"actual_home_score":1,"actual_winner_team_id":null,"away_slot":null,"away_team_id":17,"created_at":"2026-01-19T22:01:48.139859","group_letter":"E","home_slot":null,"home_team_id":19,"id":56,"match_number":56,"round":"group_stage","scheduled_datetime":"2026-06-25T16:00:00","stadium_id":1,"status":"completed","updated_at":"2026-01-19T22:15:04.678353"},{"actual_away_score":1,"actual_home_score":4,"actual_winner_team_id":null,"away_slot":null,"away_team_id":22,"created_at":"2026-01-19T22:01:48.140936","group_letter":"F","home_slot":null,"home_team_id":24,"id":57,"match_number":57,"round":"group_stage","scheduled_datetime":"2026-06-25T19:00:00","stadium_id":2,"status":"completed","updated_at":"2026-01-19T22:15:04.678633"},{"actual_away_score":0,"actual_home_score":2,"actual_winner_team_id":null,"away_slot":null,"away_team_id":21,"created_at":"2026-01-19T22:01:48.141535","group_letter":"F","home_slot":null,"home_team_id":23,"id":58,"match_number":58,"round":"group_stage","scheduled_datetime":"2026-06-25T19:00:00","stadium_id":10,"status":"completed","updated_at":"2026-01-19T22:15:04.678911"},{"actual_away_score":1,"actual_home_score":0,"actual_winner_team_id":null,"away_slot":null,"away_team_id":13,"created_at":"2026-01-19T22:01:48.142100","group_letter":"D","home_slot":null,"home_team_id":15,"id":59,"match_number":59,"round":"group_stage","scheduled_datetime":"2026-06-25T22:00:00","stadium_id":3,"status":"completed","updated_at":"2026-01-19T22:15:04.679261"},{"actual_away_score":2,"actual_home_score":3,"actual_winner_team_id":null,"away_slot":null,"away_team_id":14,"created_at":"2026-01-19T22:01:48.143485","group_letter":"D","home_slot":null,"home_team_id":16,"id":60,"match_number":60,"round":"group_stage","scheduled_datetime":"2026-06-25T22:00:00","stadium_id":6,"status":"completed","updated_at":"2026-01-19T22:15:04.679538"},{"actual_away_score":3,"actual_home_score":3,"actual_winner_team_id":null,"away_slot":null,"away_team_id":33,"created_at":"2026-01-19T22:01:48.144128","group_letter":"I","home_slot":null,"home_team_id":35,"id":61,"match_number":61,"round":"group_stage","scheduled_datetime":"2026-06-26T15:00:00","stadium_id":9,"status":"completed","updated_at":"2026-01-19T22:15:04.679819"},{"actual_away_score":1,"actual_home_score":2,"actual_winner_team_id":null,"away_slot":null,"away_team_id":34,"created_at":"2026-01-19T22:01:48.144765","group_letter":"I","home_slot":null,"home_team_id":36,"id":62,"match_number":62,"round":"group_stage","scheduled_datetime":"2026-06-26T15:00:00","stadium_id":15,"status":"completed","updated_at":"2026-01-19T22:15:04.680118"},{"actual_away_score":0,"actual_home_score":1,"actual_winner_team_id":null,"away_slot":null,"away_team_id":30,"created_at":"2026-01-19T22:01:48.146391","group_letter":"H","home_slot":null,"home_team_id":32,"id":63,"match_number":63,"round":"group_stage","scheduled_datetime":"2026-06-26T20:00:00","stadium_id":7,"status":"completed","updated_at":"2026-01-19T22:15:04.680393"},{"actual_away_score":0,"actual_home_score":3,"actual_winner_team_id":null,"away_slot":null,"away_team_id":29,"created_at":"2026-01-19T22:01:48.149120","group_letter":"H","home_slot":null,"home_team_id":31,"id":64,"match_number":64,"round":"group_stage","scheduled_datetime":"2026-06-26T20:00:00","stadium_id":13,"status":"completed","updated_at":"2026-01-19T22:15:04.680662"},{"actual_away_score":2,"actual_home_score":3,"actual_winner_team_id":null,"away_slot":null,"away_team_id":26,"created_at":"2026-01-19T22:01:48.151034","group_letter":"G","home_slot":null,"home_team_id":28,"id":65,"match_number":65,"round":"group_stage","scheduled_datetime":"2026-06-26T23:00:00","stadium_id":11,"status":"completed","updated_at":"2026-01-19T22:15:04.680934"},{"actual_away_score":3,"actual_home_score":0,"actual_winner_team_id":null,"away_slot":null,"away_team_id":25,"created_at":"2026-01-19T22:01:48.154947","group_letter":"G","home_slot":null,"home_team_id":27,"id":66,"match_number":66,"round":"group_stage","scheduled_datetime":"2026-06-26T23:00:00","stadium_id":16,"status":"completed","updated_at":"2026-01-19T22:15:04.681204"},{"actual_away_score":2,"actual_home_score":3,"actual_winner_team_id":null,"away_slot":null,"away_team_id":45,"created_at":"2026-01-19T22:01:48.155959","group_letter":"L","home_slot":null,"home_team_id":47,"id":67,"match_number":67,"round":"group_stage","scheduled_datetime":"2026-06-27T17:00:00","stadium_id":1,"status":"completed","updated_at":"2026-01-19T22:15:04.681483"},{"actual_away_score":3,"actual_home_score":1,"actual_winner_team_id":null,"away_slot":null,"away_team_id":46,"created_at":"2026-01-19T22:01:48.156516","group_letter":"L","home_slot":null,"home_team_id":48,"id":68,"match_number":68,"round":"group_stage","scheduled_datetime":"2026-06-27T17:00:00","stadium_id":8,"status":"completed","updated_at":"2026-01-19T22:15:04.681761"},{"actual_away_score":0,"actual_home_score":4,"actual_winner_team_id":null,"away_slot":null,"away_team_id":41,"created_at":"2026-01-19T22:01:48.157073","group_letter":"K","home_slot":null,"home_team_id":43,"id":69,"match_number":69,"round":"group_stage","scheduled_datetime":"2026-06-27T19:30:00","stadium_id":4,"status":"completed","updated_at":"2026-01-19T22:15:04.682055"},{"actual_away_score":2,"actual_home_score":1,"actual_winner_team_id":null,"away_slot":null,"away_team_id":42,"created_at":"2026-01-19T22:01:48.157580","group_letter":"K","home_slot":null,"home_team_id":44,"id":70,"match_number":70,"round":"group_stage","scheduled_datetime":"2026-06-27T19:30:00","stadium_id":5,"status":"completed","updated_at":"2026-01-19T22:15:04.682331"},{"actual_away_score":2,"actual_home_score":2,"actual_winner_team_id":null,"away_slot":null,"away_team_id":38,"created_at":"2026-01-19T22:01:48.158082","group_letter":"J","home_slot":null,"home_team_id":40,"id":71,"match_number":71,"round":"group_stage","scheduled_datetime":"2026-06-27T22:00:00","stadium_id":10,"status":"completed","updated_at":"2026-01-19T22:15:04.682609"},{"actual_away_score":0,"actual_home_score":3,"actual_winner_team_id":null,"away_slot":null,"away_team_id":37,"created_at":"2026-01-19T22:01:48.158582","group_letter":"J","home_slot":null,"home_team_id":39,"id":72,"match_number":72,"round":"group_stage","scheduled_datetime":"2026-06-27T22:00:00","stadium_id":2,"status":"completed","updated_at":"2026-01-19T22:15:04.682884"},{"actual_away_score":1,"actual_home_score":1,"actual_winner_team_id":4,"away_slot":null,"away_team_id":8,"created_at":"2026-01-19T22:01:48.159078","group_letter":null,"home_slot":null,"home_team_id":4,"id":73,"match_number":73,"round":"knockout_stage_roundof32","scheduled_datetime":"2026-06-28T22:00:00","stadium_id":3,"status":"completed","updated_at":"2026-01-19T22:15:04.781189"},{"actual_away_score":1,"actual_home_score":2,"actual_winner_team_id":12,"away_slot":null,"away_team_id":15,"created_at":"2026-01-19T22:01:48.159630","group_letter":null,"home_slot":null,"home_team_id":12,"id":74,"match_number":74,"round":"knockout_stage_roundof32","scheduled_datetime":"2026-06-29T13:00:00","stadium_id":7,"status":"completed","updated_at":"2026-01-19T22:15:04.785623"},{"actual_away_score":3,"actual_home_score":3,"actual_winner_team_id":24,"away_slot":null,"away_team_id":24,"created_at":"2026-01-19T22:01:48.160150","group_letter":null,"home_slot":null,"home_team_id":17,"id":75,"match_number":75,"round":"knockout_stage_roundof32","scheduled_datetime":"2026-06-29T16:30:00","stadium_id":9,"status":"completed","updated_at":"2026-01-19T22:15:04.786356"},{"actual_away_score":1,"actual_home_score":3,"actual_winner_team_id":25,"away_slot":null,"away_team_id":32,"created_at":"2026-01-19T22:01:48.160684","group_letter":null,"home_slot":null,"home_team_id":25,"id":76,"match_number":76,"round":"knockout_stage_roundof32","scheduled_datetime":"2026-06-29T21:00:00","stadium_id":14,"status":"completed","updated_at":"2026-01-19T22:15:04.786845"},{"actual_away_score":2,"actual_home_score":2,"actual_winner_team_id":39,"away_slot":null,"away_team_id":39,"created_at":"2026-01-19T22:01:48.161207","group_letter":null,"home_slot":null,"home_team_id":34,"id":77,"match_number":77,"round":"knockout_stage_roundof32","scheduled_datetime":"2026-06-30T13:00:00","stadium_id":2,"status":"completed","updated_at":"2026-01-19T22:15:04.787357"},{"actual_away_score":0,"actual_home_score":3,"actual_winner_team_id":43,"away_slot":null,"away_team_id":47,"created_at":"2026-01-19T22:01:48.161739","group_letter":null,"home_slot":null,"home_team_id":43,"id":78,"match_number":78,"round":"knockout_stage_roundof32","scheduled_datetime":"2026-06-30T17:00:00","stadium_id":1,"status":"completed","updated_at":"2026-01-19T22:15:04.787871"},{"actual_away_score":2,"actual_home_score":0,"actual_winner_team_id":2,"away_slot":null,"away_team_id":2,"created_at":"2026-01-19T22:01:48.162250","group_letter":null,"home_slot":null,"home_team_id":6,"id":79,"match_number":79,"round":"knockout_stage_roundof32","scheduled_datetime":"2026-06-30T21:00:00","stadium_id":12,"status":"completed","updated_at":"2026-01-19T22:15:04.788210"},{"actual_away_score":3,"actual_home_score":0,"actual_winner_team_id":9,"away_slot":null,"away_team_id":9,"created_at":"2026-01-19T22:01:48.162766","group_letter":null,"home_slot":null,"home_team_id":13,"id":80,"match_number":80,"round":"knockout_stage_roundof32","scheduled_datetime":"2026-06-30T12:00:00","stadium_id":5,"status":"completed","updated_at":"2026-01-19T22:15:04.788524"},{"actual_away_score":2,"actual_home_score":3,"actual_winner_team_id":22,"away_slot":null,"away_team_id":20,"created_at":"2026-01-19T22:01:48.163271","group_letter":null,"home_slot":null,"home_team_id":22,"id":81,"match_number":81,"round":"knockout_stage_roundof32","scheduled_datetime":"2026-07-01T16:00:00","stadium_id":11,"status":"completed","updated_at":"2026-01-19T22:15:04.788838"},{"actual_away_score":1,"actual_home_score":3,"actual_winner_team_id":30,"away_slot":null,"away_team_id":28,"created_at":"2026-01-19T22:01:48.163788","group_letter":null,"home_slot":null,"home_team_id":30,"id":82,"match_number":82,"round":"knockout_stage_roundof32","scheduled_datetime":"2026-07-01T20:00:00","stadium_id":6,"status":"completed","updated_at":"2026-01-19T22:15:04.789785"},{"actual_away_score":1,"actual_home_score":3,"actual_winner_team_id":40,"away_slot":null,"away_team_id":36,"created_at":"2026-01-19T22:01:48.164309","group_letter":null,"home_slot":null,"home_team_id":40,"id":83,"match_number":83,"round":"knockout_stage_roundof32","scheduled_datetime":"2026-07-02T15:00:00","stadium_id":3,"status":"completed","updated_at":"2026-01-19T22:15:04.790094"},{"actual_away_score":2,"actual_home_score":2,"actual_winner_team_id":48,"away_slot":null,"away_team_id":44,"created_at":"2026-01-19T22:01:48.164819","group_letter":null,"home_slot":null,"home_team_id":48,"id":84,"match_number":84,"round":"knockout_stage_roundof32","scheduled_datetime":"2026-07-02T17:00:00","stadium_id":15,"status":"completed","updated_at":"2026-01-19T22:15:04.790412"},{"actual_away_score":2,"actual_home_score":1,"actual_winner_team_id":7,"away_slot":null,"away_team_id":7,"created_at":"2026-01-19T22:01:48.165321","group_letter":null,"home_slot":null,"home_team_id":26,"id":85,"match_number":85,"round":"knockout_stage_roundof32","scheduled_datetime":"2026-07-02T23:00:00","stadium_id":16,"status":"completed","updated_at":"2026-01-19T22:15:04.790698"},{"actual_away_score":2,"actual_home_score":3,"actual_winner_team_id":23,"away_slot":null,"away_team_id":46,"created_at":"2026-01-19T22:01:48.165838","group_letter":null,"home_slot":null,"home_team_id":23,"id":86,"match_number":86,"round":"knockout_stage_roundof32","scheduled_datetime":"2026-07-03T14:00:00","stadium_id":2,"status":"completed","updated_at":"2026-01-19T22:15:04.790981"},{"actual_away_score":1,"actual_home_score":3,"actual_winner_team_id":31,"away_slot":null,"away_team_id":3,"created_at":"2026-01-19T22:01:48.166447","group_letter":null,"home_slot":null,"home_team_id":31,"id":87,"match_number":87,"round":"knockout_stage_roundof32","scheduled_datetime":"2026-07-03T18:00:00","stadium_id":4,"status":"completed","updated_at":"2026-01-19T22:15:04.791258"},{"actual_away_score":1,"actual_home_score":0,"actual_winner_team_id":18,"away_slot":null,"away_team_id":18,"created_at":"2026-01-19T22:01:48.166953","group_letter":null,"home_slot":null,"home_team_id":38,"id":88,"match_number":88,"round":"knockout_stage_roundof32","scheduled_datetime":"2026-07-03T21:30:00","stadium_id":10,"status":"completed","updated_at":"2026-01-19T22:15:04.791537"},{"actual_away_score":3,"actual_home_score":3,"actual_winner_team_id":4,"away_slot":null,"away_team_id":12,"created_at":"2026-01-19T22:01:48.167461","group_letter":null,"home_slot":null,"home_team_id":4,"id":89,"match_number":89,"round":"knockout_stage_roundof16","scheduled_datetime":"2026-07-04T13:00:00","stadium_id":7,"status":"completed","updated_at":"2026-01-19T22:15:04.820007"},{"actual_away_score":3,"actual_home_score":0,"actual_winner_team_id":25,"away_slot":null,"away_team_id":25,"created_at":"2026-01-19T22:01:48.167988","group_letter":null,"home_slot":null,"home_team_id":24,"id":90,"match_number":90,"round":"knockout_stage_roundof16","scheduled_datetime":"2026-07-04T17:00:00","stadium_id":8,"status":"completed","updated_at":"2026-01-19T22:15:04.824191"},{"actual_away_score":0,"actual_home_score":1,"actual_winner_team_id":39,"away_slot":null,"away_team_id":43,"created_at":"2026-01-19T22:01:48.170137","group_letter":null,"home_slot":null,"home_team_id":39,"id":91,"match_number":91,"round":"knockout_stage_roundof16","scheduled_datetime":"2026-07-05T16:00:00","stadium_id":1,"status":"completed","updated_at":"2026-01-19T22:15:04.824571"},{"actual_away_score":1,"actual_home_score":0,"actual_winner_team_id":9,"away_slot":null,"away_team_id":9,"created_at":"2026-01-19T22:01:48.172549","group_letter":null,"home_slot":null,"home_team_id":2,"id":92,"match_number":92,"round":"knockout_stage_roundof16","scheduled_datetime":"2026-07-05T20:00:00","stadium_id":12,"status":"completed","updated_at":"2026-01-19T22:15:04.824892"},{"actual_away_score":2,"actual_home_score":3,"actual_winner_team_id":22,"away_slot":null,"away_team_id":30,"created_at":"2026-01-19T22:01:48.173780","group_letter":null,"home_slot":null,"home_team_id":22,"id":93,"match_number":93,"round":"knockout_stage_roundof16","scheduled_datetime":"2026-07-06T15:00:00","stadium_id":2,"status":"completed","updated_at":"2026-01-19T22:15:04.825188"},{"actual_away_score":2,"actual_home_score":2,"actual_winner_team_id":40,"away_slot":null,"away_team_id":48,"created_at":"2026-01-19T22:01:48.174786","group_letter":null,"home_slot":null,"home_team_id":40,"id":94,"match_number":94,"round":"knockout_stage_roundof16","scheduled_datetime":"2026-07-06T20:00:00","stadium_id":11,"status":"completed","updated_at":"2026-01-19T22:15:04.825490"},{"actual_away_score":2,"actual_home_score":2,"actual_winner_team_id":7,"away_slot":null,"away_team_id":23,"created_at":"2026-01-19T22:01:48.175840","group_letter":null,"home_slot":null,"home_team_id":7,"id":95,"match_number":95,"round":"knockout_stage_roundof16","scheduled_datetime":"2026-07-07T12:00:00","stadium_id":5,"status":"completed","updated_at":"2026-01-19T22:15:04.825777"},{"actual_away_score":3,"actual_home_score":1,"actual_winner_team_id":18,"away_slot":null,"away_team_id":18,"created_at":"2026-01-19T22:01:48.176654","group_letter":null,"home_slot":null,"home_team_id":31,"id":96,"match_number":96,"round":"knockout_stage_roundof16","scheduled_datetime":"2026-07-07T16:00:00","stadium_id":16,"status":"completed","updated_at":"2026-01-19T22:15:04.826085"},{"actual_away_score":0,"actual_home_score":0,"actual_winner_team_id":25,"away_slot":null,"away_team_id":25,"created_at":"2026-01-19T22:01:48.177304","group_letter":null,"home_slot":null,"home_team_id":4,"id":97,"match_number":97,"round":"knockout_stage_quarterfinal","scheduled_datetime":"2026-07-09T16:00:00","stadium_id":9,"status":"completed","updated_at":"2026-01-19T22:15:04.848718"},{"actual_away_score":1,"actual_home_score":2,"actual_winner_team_id":39,"away_slot":null,"away_team_id":9,"created_at":"2026-01-19T22:01:48.177859","group_letter":null,"home_slot":null,"home_team_id":39,"id":98,"match_number":98,"round":"knockout_stage_quarterfinal","scheduled_datetime":"2026-07-10T15:00:00","stadium_id":3,"status":"completed","updated_at":"2026-01-19T22:15:04.852889"},{"actual_away_score":2,"actual_home_score":1,"actual_winner_team_id":40,"away_slot":null,"away_team_id":40,"created_at":"2026-01-19T22:01:48.178398","group_letter":null,"home_slot":null,"home_team_id":22,"id":99,"match_number":99,"round":"knockout_stage_quarterfinal","scheduled_datetime":"2026-07-11T17:00:00","stadium_id":4,"status":"completed","updated_at":"2026-01-19T22:15:04.853534"},{"actual_away_score":2,"actual_home_score":1,"actual_winner_team_id":18,"away_slot":null,"away_team_id":18,"created_at":"2026-01-19T22:01:48.178929","group_letter":null,"home_slot":null,"home_team_id":7,"id":100,"match_number":100,"round":"knockout_stage_quarterfinal","scheduled_datetime":"2026-07-11T21:00:00","stadium_id":10,"status":"completed","updated_at":"2026-01-19T22:15:04.853894"},{"actual_away_score":3,"actual_home_score":1,"actual_winner_team_id":39,"away_slot":null,"away_team_id":39,"created_at":"2026-01-19T22:01:48.179457","group_letter":null,"home_slot":null,"home_team_id":25,"id":101,"match_number":101,"round":"knockout_stage_semifinal","scheduled_datetime":"2026-07-14T15:00:00","stadium_id":2,"status":"completed","updated_at":"2026-01-19T22:15:04.873838"},{"actual_away_score":1,"actual_home_score":0,"actual_winner_team_id":18,"away_slot":null,"away_team_id":18,"created_at":"2026-01-19T22:01:48.179976","group_letter":null,"home_slot":null,"home_team_id":40,"id":102,"match_number":102,"round":"knockout_stage_semifinal","scheduled_datetime":"2026-07-15T15:00:00","stadium_id":5,"status":"completed","updated_at":"2026-01-19T22:15:04.878715"},{"actual_away_score":1,"actual_home_score":2,"actual_winner_team_id":25,"away_slot":null,"away_team_id":40,"created_at":"2026-01-19T22:01:48.180498","group_letter":null,"home_slot":null,"home_team_id":25,"id":103,"match_number":103,"round":"knockout_stage_thirdplace","scheduled_datetime":"2026-07-18T17:00:00","stadium_id":4,"status":"completed","updated_at":"2026-01-19T22:15:04.898461"},{"actual_away_score":1,"actual_home_score":0,"actual_winner_team_id":18,"away_slot":null,"away_team_id":18,"created_at":"2026-01-19T22:01:48.181024","group_letter":null,"home_slot":null,"home_team_id":39,"id":104,"match_number":104,"round":"knockout_stage_final","scheduled_datetime":"2026-07-19T15:00:00","stadium_id":1,"status":"completed","updated_at":"2026-01-19T22:15:04.908940"}]
+</script>
+<script type="application/json" id="teams-data">
+[{"country_code":"MX","created_at":"2026-01-19T22:01:48.003947","flag_emoji":"https://flagcdn.com/16x12/mx.png","group_letter":"A","id":1,"name":"Mexico","updated_at":"2026-01-19T22:01:48.004060"},{"country_code":"KR","created_at":"2026-01-19T22:01:48.015904","flag_emoji":"https://flagcdn.com/16x12/kr.png","group_letter":"A","id":2,"name":"South Korea","updated_at":"2026-01-19T22:01:48.015999"},{"country_code":"TBD","created_at":"2026-01-19T22:01:48.016423","flag_emoji":"https://flagcdn.com/16x12/tbd.png","group_letter":"A","id":3,"name":"TBD - A","updated_at":"2026-01-19T22:01:48.016481"},{"country_code":"ZA","created_at":"2026-01-19T22:01:48.016761","flag_emoji":"https://flagcdn.com/16x12/za.png","group_letter":"A","id":4,"name":"South Africa","updated_at":"2026-01-19T22:01:48.016814"},{"country_code":"CA","created_at":"2026-01-19T22:01:48.017063","flag_emoji":"https://flagcdn.com/16x12/ca.png","group_letter":"B","id":5,"name":"Canada","updated_at":"2026-01-19T22:01:48.017116"},{"country_code":"QA","created_at":"2026-01-19T22:01:48.017326","flag_emoji":"https://flagcdn.com/16x12/qa.png","group_letter":"B","id":6,"name":"Qatar","updated_at":"2026-01-19T22:01:48.017378"},{"country_code":"CH","created_at":"2026-01-19T22:01:48.017576","flag_emoji":"https://flagcdn.com/16x12/ch.png","group_letter":"B","id":7,"name":"Switzerland","updated_at":"2026-01-19T22:01:48.017626"},{"country_code":"TBD","created_at":"2026-01-19T22:01:48.017816","flag_emoji":"https://flagcdn.com/16x12/tbd.png","group_letter":"B","id":8,"name":"TBD - B","updated_at":"2026-01-19T22:01:48.017865"},{"country_code":"BR","created_at":"2026-01-19T22:01:48.018047","flag_emoji":"https://flagcdn.com/16x12/br.png","group_letter":"C","id":9,"name":"Brazil","updated_at":"2026-01-19T22:01:48.018096"},{"country_code":"HT","created_at":"2026-01-19T22:01:48.018292","flag_emoji":"https://flagcdn.com/16x12/ht.png","group_letter":"C","id":10,"name":"Haiti","updated_at":"2026-01-19T22:01:48.018339"},{"country_code":"GB-SCT","created_at":"2026-01-19T22:01:48.018516","flag_emoji":"https://flagcdn.com/16x12/sco.png","group_letter":"C","id":11,"name":"Scotland","updated_at":"2026-01-19T22:01:48.018564"},{"country_code":"MA","created_at":"2026-01-19T22:01:48.018749","flag_emoji":"https://flagcdn.com/16x12/ma.png","group_letter":"C","id":12,"name":"Morocco","updated_at":"2026-01-19T22:01:48.018798"},{"country_code":"US","created_at":"2026-01-19T22:01:48.018977","flag_emoji":"https://flagcdn.com/16x12/us.png","group_letter":"D","id":13,"name":"USA","updated_at":"2026-01-19T22:01:48.019026"},{"country_code":"AU","created_at":"2026-01-19T22:01:48.019201","flag_emoji":"https://flagcdn.com/16x12/au.png","group_letter":"D","id":14,"name":"Australia","updated_at":"2026-01-19T22:01:48.019248"},{"country_code":"TBD","created_at":"2026-01-19T22:01:48.019422","flag_emoji":"https://flagcdn.com/16x12/tbd.png","group_letter":"D","id":15,"name":"TBD - D","updated_at":"2026-01-19T22:01:48.019471"},{"country_code":"PY","created_at":"2026-01-19T22:01:48.019641","flag_emoji":"https://flagcdn.com/16x12/py.png","group_letter":"D","id":16,"name":"Paraguay","updated_at":"2026-01-19T22:01:48.019689"},{"country_code":"DE","created_at":"2026-01-19T22:01:48.019858","flag_emoji":"https://flagcdn.com/16x12/de.png","group_letter":"E","id":17,"name":"Germany","updated_at":"2026-01-19T22:01:48.019903"},{"country_code":"CI","created_at":"2026-01-19T22:01:48.020071","flag_emoji":"https://flagcdn.com/16x12/ci.png","group_letter":"E","id":18,"name":"Ivory Coast","updated_at":"2026-01-19T22:01:48.020096"},{"country_code":"EC","created_at":"2026-01-19T22:01:48.020264","flag_emoji":"https://flagcdn.com/16x12/ec.png","group_letter":"E","id":19,"name":"Ecuador","updated_at":"2026-01-19T22:01:48.020313"},{"country_code":"CW","created_at":"2026-01-19T22:01:48.020495","flag_emoji":"https://flagcdn.com/16x12/cw.png","group_letter":"E","id":20,"name":"Cura\u00e7ao","updated_at":"2026-01-19T22:01:48.020543"},{"country_code":"NL","created_at":"2026-01-19T22:01:48.020724","flag_emoji":"https://flagcdn.com/16x12/nl.png","group_letter":"F","id":21,"name":"Netherlands","updated_at":"2026-01-19T22:01:48.020772"},{"country_code":"TBD","created_at":"2026-01-19T22:01:48.020937","flag_emoji":"https://flagcdn.com/16x12/tbd.png","group_letter":"F","id":22,"name":"TBD - F","updated_at":"2026-01-19T22:01:48.020986"},{"country_code":"TN","created_at":"2026-01-19T22:01:48.021149","flag_emoji":"https://flagcdn.com/16x12/tn.png","group_letter":"F","id":23,"name":"Tunisia","updated_at":"2026-01-19T22:01:48.021199"},{"country_code":"JP","created_at":"2026-01-19T22:01:48.021363","flag_emoji":"https://flagcdn.com/16x12/jp.png","group_letter":"F","id":24,"name":"Japan","updated_at":"2026-01-19T22:01:48.021411"},{"country_code":"BE","created_at":"2026-01-19T22:01:48.021579","flag_emoji":"https://flagcdn.com/16x12/be.png","group_letter":"G","id":25,"name":"Belgium","updated_at":"2026-01-19T22:01:48.021626"},{"country_code":"IR","created_at":"2026-01-19T22:01:48.021790","flag_emoji":"https://flagcdn.com/16x12/ir.png","group_letter":"G","id":26,"name":"Iran","updated_at":"2026-01-19T22:01:48.021865"},{"country_code":"NZ","created_at":"2026-01-19T22:01:48.022041","flag_emoji":"https://flagcdn.com/16x12/nz.png","group_letter":"G","id":27,"name":"New Zealand","updated_at":"2026-01-19T22:01:48.022088"},{"country_code":"EG","created_at":"2026-01-19T22:01:48.022263","flag_emoji":"https://flagcdn.com/16x12/eg.png","group_letter":"G","id":28,"name":"Egypt","updated_at":"2026-01-19T22:01:48.022311"},{"country_code":"ES","created_at":"2026-01-19T22:01:48.022477","flag_emoji":"https://flagcdn.com/16x12/es.png","group_letter":"H","id":29,"name":"Spain","updated_at":"2026-01-19T22:01:48.022538"},{"country_code":"SA","created_at":"2026-01-19T22:01:48.022707","flag_emoji":"https://flagcdn.com/16x12/sa.png","group_letter":"H","id":30,"name":"Saudi Arabia","updated_at":"2026-01-19T22:01:48.022755"},{"country_code":"UY","created_at":"2026-01-19T22:01:48.022923","flag_emoji":"https://flagcdn.com/16x12/uy.png","group_letter":"H","id":31,"name":"Uruguay","updated_at":"2026-01-19T22:01:48.022971"},{"country_code":"CV","created_at":"2026-01-19T22:01:48.023777","flag_emoji":"https://flagcdn.com/16x12/cv.png","group_letter":"H","id":32,"name":"Cape Verde Islands","updated_at":"2026-01-19T22:01:48.024116"},{"country_code":"FR","created_at":"2026-01-19T22:01:48.024622","flag_emoji":"https://flagcdn.com/16x12/fr.png","group_letter":"I","id":33,"name":"France","updated_at":"2026-01-19T22:01:48.024911"},{"country_code":"TBD","created_at":"2026-01-19T22:01:48.025203","flag_emoji":"https://flagcdn.com/16x12/tbd.png","group_letter":"I","id":34,"name":"TBD - I","updated_at":"2026-01-19T22:01:48.025257"},{"country_code":"NO","created_at":"2026-01-19T22:01:48.025465","flag_emoji":"https://flagcdn.com/16x12/no.png","group_letter":"I","id":35,"name":"Norway","updated_at":"2026-01-19T22:01:48.025867"},{"country_code":"SN","created_at":"2026-01-19T22:01:48.026208","flag_emoji":"https://flagcdn.com/16x12/sn.png","group_letter":"I","id":36,"name":"Senegal","updated_at":"2026-01-19T22:01:48.026613"},{"country_code":"AR","created_at":"2026-01-19T22:01:48.026869","flag_emoji":"https://flagcdn.com/16x12/ar.png","group_letter":"J","id":37,"name":"Argentina","updated_at":"2026-01-19T22:01:48.027190"},{"country_code":"AT","created_at":"2026-01-19T22:01:48.028852","flag_emoji":"https://flagcdn.com/16x12/at.png","group_letter":"J","id":38,"name":"Austria","updated_at":"2026-01-19T22:01:48.029106"},{"country_code":"JO","created_at":"2026-01-19T22:01:48.029946","flag_emoji":"https://flagcdn.com/16x12/jo.png","group_letter":"J","id":39,"name":"Jordan","updated_at":"2026-01-19T22:01:48.030024"},{"country_code":"DZ","created_at":"2026-01-19T22:01:48.031620","flag_emoji":"https://flagcdn.com/16x12/dz.png","group_letter":"J","id":40,"name":"Algeria","updated_at":"2026-01-19T22:01:48.031718"},{"country_code":"PT","created_at":"2026-01-19T22:01:48.032523","flag_emoji":"https://flagcdn.com/16x12/pt.png","group_letter":"K","id":41,"name":"Portugal","updated_at":"2026-01-19T22:01:48.032613"},{"country_code":"UZ","created_at":"2026-01-19T22:01:48.033139","flag_emoji":"https://flagcdn.com/16x12/uz.png","group_letter":"K","id":42,"name":"Uzbekistan","updated_at":"2026-01-19T22:01:48.033201"},{"country_code":"CO","created_at":"2026-01-19T22:01:48.033911","flag_emoji":"https://flagcdn.com/16x12/co.png","group_letter":"K","id":43,"name":"Colombia","updated_at":"2026-01-19T22:01:48.034210"},{"country_code":"TBD","created_at":"2026-01-19T22:01:48.034693","flag_emoji":"https://flagcdn.com/16x12/tbd.png","group_letter":"K","id":44,"name":"TBD - K","updated_at":"2026-01-19T22:01:48.034752"},{"country_code":"ENG","created_at":"2026-01-19T22:01:48.034989","flag_emoji":"https://flagcdn.com/16x12/eng.png","group_letter":"L","id":45,"name":"England","updated_at":"2026-01-19T22:01:48.035037"},{"country_code":"GH","created_at":"2026-01-19T22:01:48.035236","flag_emoji":"https://flagcdn.com/16x12/gh.png","group_letter":"L","id":46,"name":"Ghana","updated_at":"2026-01-19T22:01:48.035285"},{"country_code":"PA","created_at":"2026-01-19T22:01:48.035478","flag_emoji":"https://flagcdn.com/16x12/pa.png","group_letter":"L","id":47,"name":"Panama","updated_at":"2026-01-19T22:01:48.035524"},{"country_code":"HR","created_at":"2026-01-19T22:01:48.035713","flag_emoji":"https://flagcdn.com/16x12/hr.png","group_letter":"L","id":48,"name":"Croatia","updated_at":"2026-01-19T22:01:48.035759"}]
+</script>
+<script type="application/json" id="stadiums-data">
+[{"city":"East Rutherford, NJ","country":"USA","id":1,"name":"MetLife Stadium","stadium_id":"New York Stadium"},{"city":"Arlington, TX","country":"USA","id":2,"name":"AT&T Stadium","stadium_id":"Dallas Stadium"},{"city":"Inglewood, CA","country":"USA","id":3,"name":"SoFi Stadium","stadium_id":"Los Angeles Stadium"},{"city":"Miami Gardens, FL","country":"USA","id":4,"name":"Hard Rock Stadium","stadium_id":"Miami Stadium"},{"city":"Atlanta, GA","country":"USA","id":5,"name":"Mercedes-Benz Stadium","stadium_id":"Atlanta Stadium"},{"city":"Santa Clara, CA","country":"USA","id":6,"name":"Levi's Stadium","stadium_id":"San Francisco Stadium"},{"city":"Houston, TX","country":"USA","id":7,"name":"NRG Stadium","stadium_id":"Houston Stadium"},{"city":"Philadelphia, PA","country":"USA","id":8,"name":"Lincoln Financial Field","stadium_id":"Philadelphia Stadium"},{"city":"Foxborough, MA","country":"USA","id":9,"name":"Gillette Stadium","stadium_id":"Boston Stadium"},{"city":"Kansas City, MO","country":"USA","id":10,"name":"Arrowhead Stadium","stadium_id":"Kansas City Stadium"},{"city":"Seattle, WA","country":"USA","id":11,"name":"Lumen Field","stadium_id":"Seattle Stadium"},{"city":"Mexico City","country":"Mexico","id":12,"name":"Estadio Azteca","stadium_id":"Mexico City Stadium"},{"city":"Guadalajara","country":"Mexico","id":13,"name":"Estadio Akron","stadium_id":"Guadlajara Stadium"},{"city":"Monterrey","country":"Mexico","id":14,"name":"Estadio BBVA","stadium_id":"Monterrey Stadium"},{"city":"Toronto","country":"Canada","id":15,"name":"BMO Field","stadium_id":"Toronto Stadium"},{"city":"Vancouver","country":"Canada","id":16,"name":"BC Place","stadium_id":"BC Place Vancouver"}]
+</script>
+
+    <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+
+    <script>
+      const statusEl = document.getElementById("status");
+      const groupsEl = document.getElementById("groups");
+      const standingsTemplate = document.getElementById("standings-template");
+      const knockoutTemplate = document.getElementById("knockout-template");
+      const standingsEl = document.getElementById("standings");
+      const knockoutEl = document.getElementById("knockout");
+      const pickSummaryEl = document.getElementById("pick-summary");
+      const pickProgressEl = document.getElementById("pick-progress");
+
+      const parseJson = (id) => {
+        const raw = document.getElementById(id)?.textContent || "[]";
+        return JSON.parse(raw);
+      };
+
+      const formatDate = (isoString) => {
+        const date = new Date(isoString);
+        return new Intl.DateTimeFormat("en-US", {
+          month: "short",
+          day: "numeric",
+          hour: "numeric",
+          minute: "2-digit",
+        }).format(date);
+      };
+
+      const toBase64Url = (bytes) => {
+        let binary = "";
+        bytes.forEach((byte) => {
+          binary += String.fromCharCode(byte);
+        });
+        return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+      };
+
+      const fromBase64Url = (value) => {
+        const padded = value.padEnd(value.length + ((4 - (value.length % 4)) % 4), "=");
+        const base64 = padded.replace(/-/g, "+").replace(/_/g, "/");
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        return bytes;
+      };
+
+      const encodePicks = (picks) => {
+        const payload = JSON.stringify(picks);
+        const compressed = window.pako.deflate(payload);
+        return toBase64Url(compressed);
+      };
+
+      const decodePicks = (encoded) => {
+        const bytes = fromBase64Url(encoded);
+        const json = window.pako.inflate(bytes, { to: "string" });
+        return JSON.parse(json);
+      };
+
+      const getPickScore = (pick) => {
+        if (pick === "H") return { home: 1, away: 0 };
+        if (pick === "A") return { home: 0, away: 1 };
+        if (pick === "D") return { home: 0, away: 0 };
+        return null;
+      };
+
+      const updatePickSummary = () => {
+        if (!pickSummaryEl || !pickProgressEl) return;
+        const groupMatches = cachedMatches.filter((match) => match.round === "group_stage");
+        const total = groupMatches.length;
+        const picked = groupMatches.filter((match) => cachedPicks[match.id]).length;
+        const missing = Math.max(total - picked, 0);
+        const percent = total === 0 ? 0 : Math.round((picked / total) * 100);
+
+        pickSummaryEl.textContent = `Missing picks: ${missing} of ${total}`;
+        pickProgressEl.style.width = `${percent}%`;
+      };
+
+      const persistPicks = () => {
+        const baseUrl = `${window.location.pathname}${window.location.search}`;
+        const knockoutPicks = cachedPicks?.knockout || {};
+        const thirdPlaceOrder = cachedPicks?.thirdPlaceOrder || [];
+        const standingsOrder = cachedPicks?.standingsOrder || {};
+        const { knockout, ...groupPicks } = cachedPicks;
+        const hasGroupPicks = Object.keys(groupPicks || {}).length > 0;
+        const hasKnockoutPicks = Object.keys(knockoutPicks).length > 0;
+        const hasThirdPlaceOrder = thirdPlaceOrder.length > 0;
+        const hasStandingsOrder = Object.keys(standingsOrder).length > 0;
+        const hasPicks = hasGroupPicks || hasKnockoutPicks || hasThirdPlaceOrder || hasStandingsOrder;
+        if (!hasPicks) {
+          history.replaceState(null, "", baseUrl);
+          return;
+        }
+        const encoded = encodePicks(cachedPicks);
+        history.replaceState(null, "", `${baseUrl}#p=${encoded}`);
+      };
+
+      const loadPicksFromHash = () => {
+        const hash = window.location.hash.replace(/^#/, "");
+        if (!hash.startsWith("p=")) return {};
+        const encoded = hash.slice(2);
+        if (!encoded) return {};
+        try {
+          return decodePicks(encoded);
+        } catch (error) {
+          return {};
+        }
+      };
+
+      const normalizePicks = (picks) => {
+        if (!picks || typeof picks !== "object" || Array.isArray(picks)) {
+          return { knockout: {}, thirdPlaceOrder: [], standingsOrder: {} };
+        }
+        if (!picks.knockout || typeof picks.knockout !== "object") {
+          picks.knockout = {};
+        }
+        if (!Array.isArray(picks.thirdPlaceOrder)) {
+          picks.thirdPlaceOrder = [];
+        }
+        if (!picks.standingsOrder || typeof picks.standingsOrder !== "object") {
+          picks.standingsOrder = {};
+        }
+        return picks;
+      };
+
+      const createPickControls = (match, pickGroupEl, variant = "pill") => {
+        const options = [
+          { value: "H", label: "Home" },
+          { value: "D", label: "Draw" },
+          { value: "A", label: "Away" },
+        ];
+
+        const pillClass =
+          variant === "grid"
+            ? "flex w-full items-center justify-center rounded-md border border-slate-200 bg-white px-2 py-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500 transition peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white"
+            : "inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500 transition peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white";
+
+        options.forEach((option) => {
+          const label = document.createElement("label");
+          label.className = variant === "grid" ? "cursor-pointer block" : "cursor-pointer";
+
+          const input = document.createElement("input");
+          input.type = "radio";
+          input.name = `pick-${match.id}`;
+          input.value = option.value;
+          input.className = "peer sr-only";
+          if (cachedPicks[match.id] === option.value) {
+            input.checked = true;
+          }
+
+          input.addEventListener("change", () => {
+            if (input.checked) {
+              cachedPicks[match.id] = option.value;
+              persistPicks();
+              updatePickSummary();
+              renderStandings(cachedMatches, cachedTeams, cachedPicks);
+              renderGroups(cachedMatches, cachedTeams, cachedStadiums);
+              renderKnockout(cachedMatches, cachedTeams, cachedStadiums, cachedPicks);
+            }
+          });
+
+          const pill = document.createElement("span");
+          pill.className = pillClass;
+          pill.textContent = option.label;
+
+          label.appendChild(input);
+          label.appendChild(pill);
+          pickGroupEl.appendChild(label);
+        });
+      };
+
+      const createMatchRow = (match, teamsById, stadiumsById) => {
+        const tr = document.createElement("tr");
+        tr.className = "hover:bg-slate-50/80";
+
+        const currentPick = cachedPicks[match.id];
+        const statusText = currentPick ? "Picked" : "Open";
+        const statusClass = currentPick
+          ? "border-emerald-200 bg-emerald-100 text-emerald-700"
+          : "border-amber-200 bg-amber-100 text-amber-700";
+
+        const homeTeam = teamsById.get(match.home_team_id) || { name: "TBD", flag_emoji: "" };
+        const awayTeam = teamsById.get(match.away_team_id) || { name: "TBD", flag_emoji: "" };
+        const stadium = stadiumsById.get(match.stadium_id);
+
+        const groupCell = document.createElement("td");
+        groupCell.className = "px-3 py-2 text-center font-semibold text-slate-600";
+        groupCell.textContent = match.group_letter || "-";
+
+        const matchCell = document.createElement("td");
+        matchCell.className = "px-3 py-2 text-center font-semibold text-slate-600";
+        matchCell.textContent = `#${match.match_number}`;
+
+        const statusCell = document.createElement("td");
+        statusCell.className = "px-3 py-2";
+        statusCell.innerHTML = `<span class="rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-widest ${statusClass}">${statusText}</span>`;
+
+        const dateCell = document.createElement("td");
+        dateCell.className = "px-3 py-2 text-slate-500";
+        dateCell.textContent = formatDate(match.scheduled_datetime);
+
+        const homeCell = document.createElement("td");
+        homeCell.className = "px-3 py-2 font-medium";
+        homeCell.innerHTML = `
+          <div class="flex items-center gap-2">
+            <img class="h-4 w-6 rounded-sm border border-slate-200 object-cover" src="${homeTeam.flag_emoji || ""}" alt="${homeTeam.name} flag" />
+            <span>${homeTeam.name}</span>
+          </div>
+        `;
+
+        const awayCell = document.createElement("td");
+        awayCell.className = "px-3 py-2 font-medium";
+        awayCell.innerHTML = `
+          <div class="flex items-center gap-2">
+            <img class="h-4 w-6 rounded-sm border border-slate-200 object-cover" src="${awayTeam.flag_emoji || ""}" alt="${awayTeam.name} flag" />
+            <span>${awayTeam.name}</span>
+          </div>
+        `;
+
+        const stadiumCell = document.createElement("td");
+        stadiumCell.className = "px-3 py-2";
+        stadiumCell.textContent = stadium ? stadium.name : "Stadium TBD";
+
+        const locationCell = document.createElement("td");
+        locationCell.className = "px-3 py-2 text-slate-500";
+        locationCell.textContent = stadium ? `${stadium.city}, ${stadium.country}` : "Location TBD";
+
+        const pickCell = document.createElement("td");
+        pickCell.className = "px-3 py-2";
+        const pickGroupEl = document.createElement("div");
+        pickGroupEl.className = "grid grid-cols-3 gap-1";
+        createPickControls(match, pickGroupEl, "grid");
+        pickCell.appendChild(pickGroupEl);
+
+        tr.appendChild(groupCell);
+        tr.appendChild(matchCell);
+        tr.appendChild(statusCell);
+        tr.appendChild(dateCell);
+        tr.appendChild(homeCell);
+        tr.appendChild(awayCell);
+        tr.appendChild(stadiumCell);
+        tr.appendChild(locationCell);
+        tr.appendChild(pickCell);
+
+        return tr;
+      };
+
+      const buildStandings = (matches, teams, picks) => {
+        const groupMatches = matches.filter((match) => match.round === "group_stage");
+        const groups = {};
+
+        teams.forEach((team) => {
+          if (!team.group_letter) return;
+          groups[team.group_letter] = groups[team.group_letter] || {};
+          groups[team.group_letter][team.id] = {
+            team,
+            played: 0,
+            gf: 0,
+            ga: 0,
+            gd: 0,
+            points: 0,
+          };
+        });
+
+        groupMatches.forEach((match) => {
+          const group = match.group_letter;
+          if (!group || !groups[group]) return;
+          const home = groups[group][match.home_team_id];
+          const away = groups[group][match.away_team_id];
+          if (!home || !away) return;
+          const pick = picks[match.id];
+          const score = getPickScore(pick);
+          if (!score) return;
+
+          home.played += 1;
+          away.played += 1;
+          home.gf += score.home;
+          home.ga += score.away;
+          away.gf += score.away;
+          away.ga += score.home;
+
+          if (score.home > score.away) {
+            home.points += 3;
+          } else if (score.home < score.away) {
+            away.points += 3;
+          } else {
+            home.points += 1;
+            away.points += 1;
+          }
+        });
+
+        Object.values(groups).forEach((group) => {
+          Object.values(group).forEach((row) => {
+            row.gd = row.gf - row.ga;
+          });
+        });
+
+        return groups;
+      };
+
+      const getSortedRows = (group, groupLetter) =>
+        Object.values(group).sort((a, b) => {
+          if (b.points !== a.points) return b.points - a.points;
+          if (b.gd !== a.gd) return b.gd - a.gd;
+          const tieKey = `${a.points}-${a.gd}`;
+          const order = cachedPicks?.standingsOrder?.[groupLetter]?.[tieKey] || [];
+          const orderMap = new Map(order.map((id, index) => [id, index]));
+          const aOrder = orderMap.get(a.team.id);
+          const bOrder = orderMap.get(b.team.id);
+          if (typeof aOrder === "number" && typeof bOrder === "number") {
+            return aOrder - bOrder;
+          }
+          if (b.gf !== a.gf) return b.gf - a.gf;
+          return a.team.name.localeCompare(b.team.name);
+        });
+
+      const renderThirdPlaceTable = (groups) => {
+        cachedThirdPlaceGroups = groups;
+        const thirdPlaceRows = Object.entries(groups).map(([groupLetter, group]) => {
+          const rows = getSortedRows(group, groupLetter);
+          return { groupLetter, ...rows[2] };
+        });
+
+        thirdPlaceRows.sort((a, b) => {
+          if (b.points !== a.points) return b.points - a.points;
+          if (b.gd !== a.gd) return b.gd - a.gd;
+          if (b.gf !== a.gf) return b.gf - a.gf;
+          return a.team.name.localeCompare(b.team.name);
+        });
+
+        const tableBody = document.getElementById("third-place-table");
+        tableBody.innerHTML = "";
+
+        const rowsById = new Map(thirdPlaceRows.map((row) => [row.team.id, row]));
+        const defaultOrder = thirdPlaceRows.map((row) => row.team.id);
+        const storedOrder = cachedPicks.thirdPlaceOrder || [];
+        const normalizedOrder = storedOrder
+          .filter((id) => rowsById.has(id))
+          .concat(defaultOrder.filter((id) => !storedOrder.includes(id)));
+
+        const isSameOrder =
+          normalizedOrder.length === storedOrder.length &&
+          normalizedOrder.every((id, index) => id === storedOrder[index]);
+
+        if (!isSameOrder) {
+          cachedPicks.thirdPlaceOrder = normalizedOrder;
+          persistPicks();
+        }
+
+        const applyMove = (order, fromId, toId) => {
+          const fromIndex = order.indexOf(fromId);
+          const toIndex = order.indexOf(toId);
+          if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return order;
+          const updated = [...order];
+          const [moved] = updated.splice(fromIndex, 1);
+          updated.splice(toIndex, 0, moved);
+          return updated;
+        };
+
+        if (!tableBody.dataset.dragReady) {
+          tableBody.dataset.dragReady = "true";
+          tableBody.addEventListener("dragover", (event) => {
+            event.preventDefault();
+          });
+          tableBody.addEventListener("drop", (event) => {
+            event.preventDefault();
+            const targetRow = event.target.closest("tr[data-team-id]");
+            const sourceId =
+              thirdPlaceDragSourceId || Number(event.dataTransfer.getData("text/plain"));
+            if (!targetRow || !sourceId) return;
+            const targetId = Number(targetRow.dataset.teamId);
+            cachedPicks.thirdPlaceOrder = applyMove(cachedPicks.thirdPlaceOrder, sourceId, targetId);
+            thirdPlaceDragSourceId = null;
+            persistPicks();
+            renderThirdPlaceTable(cachedThirdPlaceGroups);
+          });
+        }
+
+        normalizedOrder.forEach((teamId, index) => {
+          const row = rowsById.get(teamId);
+          if (!row) return;
+          const tr = document.createElement("tr");
+          tr.dataset.teamId = row.team.id;
+          tr.draggable = true;
+          tr.title = "Drag to reorder";
+          tr.className = "cursor-grab";
+          if (index < 8) {
+            tr.classList.add("bg-emerald-50/50");
+          }
+          tr.addEventListener("dragstart", (event) => {
+            thirdPlaceDragSourceId = row.team.id;
+            event.dataTransfer.effectAllowed = "move";
+            event.dataTransfer.setData("text/plain", String(row.team.id));
+            tr.classList.add("opacity-60");
+          });
+          tr.addEventListener("dragend", () => {
+            tr.classList.remove("opacity-60");
+          });
+          tr.innerHTML = `
+            <td class="px-3 py-2 text-center font-semibold text-slate-500">${index + 1}</td>
+            <td class="px-3 py-2 font-medium">
+              <div class="flex items-center gap-2">
+                <img class="h-4 w-6 rounded-sm border border-slate-200 object-cover" src="${row.team.flag_emoji || ""}" alt="${row.team.name} flag" />
+                <span>${row.team.name}</span>
+              </div>
+            </td>
+            <td class="px-3 py-2 text-center font-semibold text-slate-600">${row.groupLetter}</td>
+            <td class="px-3 py-2 text-center">${row.played}</td>
+            <td class="px-3 py-2 text-center">${row.gd}</td>
+            <td class="px-3 py-2 text-center font-semibold text-slate-900">${row.points}</td>
+          `;
+          tableBody.appendChild(tr);
+        });
+      };
+
+      const renderStandings = (matches, teams, picks) => {
+        const groups = buildStandings(matches, teams, picks);
+        const groupLetters = Object.keys(groups).sort();
+        standingsEl.innerHTML = "";
+
+        groupLetters.forEach((groupLetter) => {
+          const groupCard = standingsTemplate.content.cloneNode(true);
+          groupCard.querySelector("h3").textContent = `Group ${groupLetter}`;
+          const tbody = groupCard.querySelector("tbody");
+
+          const rows = getSortedRows(groups[groupLetter], groupLetter).slice(0, 4);
+          const tieGroups = rows.reduce((acc, row) => {
+            const key = `${row.points}-${row.gd}`;
+            acc[key] = acc[key] || [];
+            acc[key].push(row);
+            return acc;
+          }, {});
+
+          rows.forEach((row, index) => {
+            const tr = document.createElement("tr");
+            if (index < 2) {
+              tr.className = "bg-emerald-50/60";
+            } else if (index === 2) {
+              tr.className = "bg-amber-50/60";
+            }
+            const tieKey = `${row.points}-${row.gd}`;
+            const tieRows = tieGroups[tieKey] || [];
+            const showTieOrder = tieRows.length > 1;
+            const tieDefaults = [...tieRows]
+              .sort((a, b) => {
+                if (b.gf !== a.gf) return b.gf - a.gf;
+                return a.team.name.localeCompare(b.team.name);
+              })
+              .map((item) => item.team.id);
+            const storedOrder = cachedPicks?.standingsOrder?.[groupLetter]?.[tieKey] || [];
+            const normalizedOrder = storedOrder
+              .filter((id) => tieDefaults.includes(id))
+              .concat(tieDefaults.filter((id) => !storedOrder.includes(id)));
+            if (showTieOrder && normalizedOrder.length > 0) {
+              cachedPicks.standingsOrder[groupLetter] = cachedPicks.standingsOrder[groupLetter] || {};
+              cachedPicks.standingsOrder[groupLetter][tieKey] = normalizedOrder;
+            }
+
+            const teamCell = document.createElement("td");
+            teamCell.className = "px-3 py-2 font-medium";
+            teamCell.innerHTML = `
+              <div class="flex flex-wrap items-center gap-2">
+                <img class="h-4 w-6 rounded-sm border border-slate-200 object-cover" src="${row.team.flag_emoji || ""}" alt="${row.team.name} flag" />
+                <span>${row.team.name}</span>
+              </div>
+            `;
+
+            if (showTieOrder) {
+              const orderGroup = cachedPicks.standingsOrder[groupLetter][tieKey];
+              const orderIndex = orderGroup.indexOf(row.team.id);
+              const select = document.createElement("select");
+              select.className =
+                "ml-2 rounded-full border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500";
+              select.title = "Tie-break order";
+              for (let optionIndex = 0; optionIndex < orderGroup.length; optionIndex += 1) {
+                const option = document.createElement("option");
+                option.value = optionIndex + 1;
+                option.textContent = `Order ${optionIndex + 1}`;
+                if (optionIndex === orderIndex) option.selected = true;
+                select.appendChild(option);
+              }
+              select.addEventListener("change", () => {
+                const newPosition = Number(select.value) - 1;
+                const currentIndex = orderGroup.indexOf(row.team.id);
+                if (currentIndex === newPosition) return;
+                const updated = [...orderGroup];
+                updated.splice(currentIndex, 1);
+                updated.splice(newPosition, 0, row.team.id);
+                cachedPicks.standingsOrder[groupLetter][tieKey] = updated;
+                persistPicks();
+                renderStandings(cachedMatches, cachedTeams, cachedPicks);
+                renderKnockout(cachedMatches, cachedTeams, cachedStadiums, cachedPicks);
+              });
+              teamCell.querySelector("div")?.appendChild(select);
+            }
+
+            const playedCell = document.createElement("td");
+            playedCell.className = "px-3 py-2 text-center";
+            playedCell.textContent = row.played;
+
+            const gdCell = document.createElement("td");
+            gdCell.className = "px-3 py-2 text-center";
+            gdCell.textContent = row.gd;
+
+            const ptsCell = document.createElement("td");
+            ptsCell.className = "px-3 py-2 text-center font-semibold text-slate-900";
+            ptsCell.textContent = row.points;
+
+            tr.appendChild(teamCell);
+            tr.appendChild(playedCell);
+            tr.appendChild(gdCell);
+            tr.appendChild(ptsCell);
+            tbody.appendChild(tr);
+          });
+
+          standingsEl.appendChild(groupCard);
+        });
+
+        persistPicks();
+        renderThirdPlaceTable(groups);
+      };
+
+      const renderGroups = (matches, teams, stadiums) => {
+        const teamsById = new Map(teams.map((team) => [team.id, team]));
+        const stadiumsById = new Map(stadiums.map((stadium) => [stadium.id, stadium]));
+
+        groupsEl.innerHTML = "";
+
+        matches
+          .filter((match) => match.round === "group_stage")
+          .sort((a, b) => a.match_number - b.match_number)
+          .forEach((match) => {
+            groupsEl.appendChild(createMatchRow(match, teamsById, stadiumsById));
+          });
+      };
+
+      const buildKnockoutBracket = (groups, picks) => {
+        const groupLetters = Object.keys(groups).sort();
+        const groupRows = groupLetters.map((letter) => ({
+          letter,
+          rows: getSortedRows(groups[letter], letter),
+        }));
+
+        const topThirds = groupRows
+          .map((group) => ({ group: group.letter, ...group.rows[2] }))
+          .sort((a, b) => {
+            if (b.points !== a.points) return b.points - a.points;
+            if (b.gd !== a.gd) return b.gd - a.gd;
+            if (b.gf !== a.gf) return b.gf - a.gf;
+            return a.team.name.localeCompare(b.team.name);
+          })
+          .slice(0, 8);
+
+        const firstSeeds = groupRows.map((group) => ({ seed: `${group.letter}1`, ...group.rows[0] }));
+        const secondSeeds = groupRows.map((group) => ({ seed: `${group.letter}2`, ...group.rows[1] }));
+        const thirdSeeds = topThirds.map((row) => ({ seed: `${row.group}3`, ...row }));
+        const qualified = [...firstSeeds, ...secondSeeds, ...thirdSeeds];
+
+        const pickWinner = (home, away, matchKey) => {
+          if (!home && !away) return null;
+          if (home && !away) return home;
+          if (away && !home) return away;
+          const pickId = picks?.knockout?.[matchKey];
+          if (pickId === home.team.id) return home;
+          if (pickId === away.team.id) return away;
+          return null;
+        };
+
+        const buildRound = (teams, roundKey) => {
+          const matches = [];
+          const winners = [];
+          for (let i = 0; i < teams.length; i += 2) {
+            const home = teams[i] || null;
+            const away = teams[i + 1] || null;
+            const matchKey = `${roundKey}-${i / 2 + 1}`;
+            const winner = pickWinner(home, away, matchKey);
+            matches.push({ home, away, winner, key: matchKey });
+            winners.push(winner);
+          }
+          return { matches, winners };
+        };
+
+        const roundOf32 = buildRound(qualified, "round32");
+        const roundOf16 = buildRound(roundOf32.winners, "round16");
+        const quarterfinals = buildRound(roundOf16.winners, "quarters");
+        const semifinals = buildRound(quarterfinals.winners, "semis");
+        const finalMatch = buildRound(semifinals.winners, "final");
+        const thirdPlaceTeams = semifinals.matches.map((match) => {
+          if (!match.home || !match.away || !match.winner) return null;
+          return match.home === match.winner ? match.away : match.home;
+        });
+        const thirdPlace = buildRound(thirdPlaceTeams, "third");
+
+        return {
+          roundOf32: roundOf32.matches,
+          roundOf16: roundOf16.matches,
+          quarterfinals: quarterfinals.matches,
+          semifinals: semifinals.matches,
+          final: finalMatch.matches,
+          thirdPlace: thirdPlace.matches,
+        };
+      };
+
+      const renderKnockout = (matches, teams, stadiums, picks) => {
+        const groups = buildStandings(matches, teams, cachedPicks);
+        const bracket = buildKnockoutBracket(groups, picks);
+        const stadiumsById = new Map(stadiums.map((stadium) => [stadium.id, stadium]));
+        const knockoutMatchesByRound = matches
+          .filter((match) => match.round && match.round.startsWith("knockout_stage"))
+          .sort((a, b) => a.match_number - b.match_number)
+          .reduce((acc, match) => {
+            acc[match.round] = acc[match.round] || [];
+            acc[match.round].push(match);
+            return acc;
+          }, {});
+        const roundLookup = {
+          round32: "knockout_stage_roundof32",
+          round16: "knockout_stage_roundof16",
+          quarters: "knockout_stage_quarterfinal",
+          semis: "knockout_stage_semifinal",
+          third: "knockout_stage_thirdplace",
+          final: "knockout_stage_final",
+        };
+
+        const columns = [
+          { title: "Round of 32", matches: bracket.roundOf32, roundKey: "round32" },
+          { title: "Round of 16", matches: bracket.roundOf16, roundKey: "round16" },
+          { title: "Quarterfinals", matches: bracket.quarterfinals, roundKey: "quarters" },
+          { title: "Semifinals", matches: bracket.semifinals, roundKey: "semis" },
+        ];
+
+        knockoutEl.innerHTML = "";
+
+        const createKnockoutPickControls = (match, pickGroupEl) => {
+          if (!pickGroupEl) return;
+          pickGroupEl.innerHTML = "";
+          const options = [
+            { side: "home", label: match.home?.team?.name, id: match.home?.team?.id },
+            { side: "away", label: match.away?.team?.name, id: match.away?.team?.id },
+          ];
+
+          options.forEach((option) => {
+            const label = document.createElement("label");
+            label.className = option.id ? "cursor-pointer" : "opacity-40";
+
+            const input = document.createElement("input");
+            input.type = "radio";
+            input.name = `pick-${match.key}`;
+            input.value = option.id || "";
+            input.disabled = !option.id;
+            input.className = "peer sr-only";
+            if (option.id && cachedPicks?.knockout?.[match.key] === option.id) {
+              input.checked = true;
+            }
+
+            input.addEventListener("change", () => {
+              if (input.checked && option.id) {
+                cachedPicks.knockout[match.key] = option.id;
+                persistPicks();
+                renderKnockout(cachedMatches, cachedTeams, cachedStadiums, cachedPicks);
+              }
+            });
+
+            const pill = document.createElement("span");
+            pill.className =
+              "inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500 transition peer-checked:border-emerald-500 peer-checked:bg-emerald-500 peer-checked:text-white";
+            pill.textContent = option.label || "TBD";
+
+            label.appendChild(input);
+            label.appendChild(pill);
+            pickGroupEl.appendChild(label);
+          });
+        };
+
+        columns.forEach((columnData) => {
+          const column = document.createElement("div");
+          column.className = "space-y-3";
+          const header = document.createElement("div");
+          header.className = "rounded-full bg-slate-100 px-3 py-1 text-[11px] uppercase tracking-widest text-slate-500";
+          header.textContent = columnData.title;
+          column.appendChild(header);
+
+          columnData.matches.forEach((match, index) => {
+            const card = knockoutTemplate.content.cloneNode(true);
+            card.querySelector('[data-role="round"]').textContent = columnData.title;
+            card.querySelector('[data-role="match-number"]').textContent = `#${index + 1}`;
+
+            const homeTeam = match.home ? match.home.team : { name: "TBD", flag_emoji: "" };
+            const awayTeam = match.away ? match.away.team : { name: "TBD", flag_emoji: "" };
+            card.querySelector('[data-role="home-flag"]').src = homeTeam.flag_emoji || "";
+            card.querySelector('[data-role="home-flag"]').alt = `${homeTeam.name} flag`;
+            card.querySelector('[data-role="home-name"]').textContent = homeTeam.name;
+            card.querySelector('[data-role="away-flag"]').src = awayTeam.flag_emoji || "";
+            card.querySelector('[data-role="away-flag"]').alt = `${awayTeam.name} flag`;
+            card.querySelector('[data-role="away-name"]').textContent = awayTeam.name;
+
+            const matchMeta = knockoutMatchesByRound[roundLookup[columnData.roundKey]]?.[index] || null;
+            const dateEl = card.querySelector('[data-role="match-date"]');
+            const stadiumEl = card.querySelector('[data-role="stadium"]');
+            if (matchMeta) {
+              const stadium = stadiumsById.get(matchMeta.stadium_id);
+              dateEl.textContent = formatDate(matchMeta.scheduled_datetime);
+              stadiumEl.textContent = stadium ? stadium.name : "Stadium TBD";
+            } else {
+              dateEl.textContent = "Date TBD";
+              stadiumEl.textContent = "Stadium TBD";
+            }
+            createKnockoutPickControls(match, card.querySelector('[data-role="pick-group"]'));
+
+            column.appendChild(card);
+          });
+
+          knockoutEl.appendChild(column);
+        });
+
+        const finalColumn = document.createElement("div");
+        finalColumn.className = "space-y-3";
+        const finalHeader = document.createElement("div");
+        finalHeader.className = "rounded-full bg-slate-900 px-3 py-1 text-[11px] uppercase tracking-widest text-white";
+        finalHeader.textContent = "Finals";
+        finalColumn.appendChild(finalHeader);
+
+        [
+          { title: "Third Place", matches: bracket.thirdPlace, roundKey: "third" },
+          { title: "Final", matches: bracket.final, roundKey: "final" },
+        ].forEach((columnData) => {
+          columnData.matches.forEach((match, index) => {
+            const card = knockoutTemplate.content.cloneNode(true);
+            card.querySelector('[data-role="round"]').textContent = columnData.title;
+            card.querySelector('[data-role="match-number"]').textContent = `#${index + 1}`;
+
+            const homeTeam = match.home ? match.home.team : { name: "TBD", flag_emoji: "" };
+            const awayTeam = match.away ? match.away.team : { name: "TBD", flag_emoji: "" };
+            card.querySelector('[data-role="home-flag"]').src = homeTeam.flag_emoji || "";
+            card.querySelector('[data-role="home-flag"]').alt = `${homeTeam.name} flag`;
+            card.querySelector('[data-role="home-name"]').textContent = homeTeam.name;
+            card.querySelector('[data-role="away-flag"]').src = awayTeam.flag_emoji || "";
+            card.querySelector('[data-role="away-flag"]').alt = `${awayTeam.name} flag`;
+            card.querySelector('[data-role="away-name"]').textContent = awayTeam.name;
+
+            const matchMeta = knockoutMatchesByRound[roundLookup[columnData.roundKey]]?.[index] || null;
+            const dateEl = card.querySelector('[data-role="match-date"]');
+            const stadiumEl = card.querySelector('[data-role="stadium"]');
+            if (matchMeta) {
+              const stadium = stadiumsById.get(matchMeta.stadium_id);
+              dateEl.textContent = formatDate(matchMeta.scheduled_datetime);
+              stadiumEl.textContent = stadium ? stadium.name : "Stadium TBD";
+            } else {
+              dateEl.textContent = "Date TBD";
+              stadiumEl.textContent = "Stadium TBD";
+            }
+            createKnockoutPickControls(match, card.querySelector('[data-role="pick-group"]'));
+
+            finalColumn.appendChild(card);
+          });
+        });
+
+        knockoutEl.appendChild(finalColumn);
+      };
+
+      let cachedMatches = [];
+      let cachedTeams = [];
+      let cachedStadiums = [];
+      let cachedPicks = {};
+      let cachedThirdPlaceGroups = null;
+      let thirdPlaceDragSourceId = null;
+
+      const randomizeGroupPicks = () => {
+        const options = ["H", "D", "A"];
+        cachedMatches
+          .filter((match) => match.round === "group_stage")
+          .forEach((match) => {
+            cachedPicks[match.id] = options[Math.floor(Math.random() * options.length)];
+          });
+
+        persistPicks();
+        renderStandings(cachedMatches, cachedTeams, cachedPicks);
+        renderGroups(cachedMatches, cachedTeams, cachedStadiums);
+        renderKnockout(cachedMatches, cachedTeams, cachedStadiums, cachedPicks);
+        updatePickSummary();
+      };
+
+      const init = () => {
+        try {
+          cachedMatches = parseJson("matches-data");
+          cachedTeams = parseJson("teams-data");
+          cachedStadiums = parseJson("stadiums-data");
+          cachedPicks = normalizePicks(loadPicksFromHash());
+
+          renderStandings(cachedMatches, cachedTeams, cachedPicks);
+          renderGroups(cachedMatches, cachedTeams, cachedStadiums);
+          renderKnockout(cachedMatches, cachedTeams, cachedStadiums, cachedPicks);
+          updatePickSummary();
+          statusEl.remove();
+
+        const randomizeButton = document.getElementById("randomize-results");
+        randomizeButton?.addEventListener("click", randomizeGroupPicks);
+        } catch (error) {
+          statusEl.textContent = "Failed to load embedded data.";
+          statusEl.classList.add("text-rose-600", "border-rose-200", "bg-rose-50");
+        }
+      };
+
+      init();
+    </script>
+  </body>
+</html>
