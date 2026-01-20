@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- SEO & Meta Tags -->
+    <title>World Cup 2026 Betting Odds - Team Rankings | Mis Quinielas Online</title>
+    <meta name="description" content="Live World Cup 2026 betting odds from Kalshi prediction market. See which teams have the highest probability to win based on market data." />
+    <link rel="canonical" href="https://misquinielasonline.com/metrics.html" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="min-h-screen bg-gradient-to-br from-amber-50 via-slate-50 to-cyan-100 text-slate-900">
+    <header class="px-6 py-10 sm:px-10">
+      <div class="mx-auto max-w-6xl">
+        <div class="flex flex-col gap-4">
+          <nav class="flex gap-4 text-sm font-medium text-slate-600 no-print">
+            <a href="index.html" class="hover:text-emerald-600 transition-colors">Card View</a>
+            <a href="group-grid.html" class="hover:text-emerald-600 transition-colors">Grid View</a>
+            <a href="print-pool.html" class="hover:text-emerald-600 transition-colors">Print Sheet</a>
+            <a href="results.html" class="hover:text-emerald-600 transition-colors">Results</a>
+            <a href="metrics.html" class="hover:text-emerald-600 border-b-2 border-emerald-500 text-slate-900">Metrics</a>
+          </nav>
+          <div class="inline-flex items-center gap-2 text-xs uppercase tracking-[0.35em] text-slate-500">
+            <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+            World Cup 2026
+          </div>
+          <h1 class="text-3xl font-semibold sm:text-5xl">Betting Odds & Team Rankings</h1>
+          <p class="max-w-2xl text-sm text-slate-600 sm:text-base">
+            Live odds from Kalshi prediction market showing each team's implied probability to win the World Cup 2026.
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <main class="px-6 pb-16 sm:px-10">
+      <section class="mx-auto max-w-6xl space-y-6">
+        <div class="rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 class="text-lg font-semibold">Kalshi Prediction Market Data</h2>
+              <p class="text-sm text-slate-500">Click the button to fetch current odds from the Kalshi API.</p>
+            </div>
+            <button
+              id="fetch-rankings-btn"
+              class="inline-flex items-center gap-2 rounded-full border border-emerald-600 bg-emerald-600 px-6 py-3 text-sm font-semibold uppercase tracking-widest text-white transition hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+              type="button"
+            >
+              <span id="btn-text">Fetch Rankings</span>
+              <svg id="spinner" class="hidden h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            </button>
+          </div>
+
+          <div id="status-message" class="mt-4 hidden rounded-lg p-3 text-sm"></div>
+          <div id="fetch-time" class="mt-2 hidden text-xs text-slate-400"></div>
+        </div>
+
+        <div id="rankings-container" class="hidden rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold">Team Rankings by Win Probability</h3>
+            <span class="rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-emerald-700">Live Data</span>
+          </div>
+          <div class="overflow-hidden rounded-xl border border-slate-100">
+            <table class="w-full text-left text-sm">
+              <thead class="bg-slate-50 text-[11px] uppercase tracking-widest text-slate-400">
+                <tr>
+                  <th class="px-4 py-3 text-center">Rank</th>
+                  <th class="px-4 py-3">Team</th>
+                  <th class="px-4 py-3 text-center">Win Prob %</th>
+                  <th class="px-4 py-3 text-center">Bid</th>
+                  <th class="px-4 py-3 text-center">Ask</th>
+                  <th class="px-4 py-3 text-center">Volume</th>
+                </tr>
+              </thead>
+              <tbody id="rankings-table" class="divide-y divide-slate-100 text-slate-700">
+              </tbody>
+            </table>
+          </div>
+          <p class="mt-4 text-xs text-slate-400">
+            Prices shown in cents (1-99) represent implied probability percentage. Higher bid = higher market confidence.
+          </p>
+        </div>
+
+        <!-- Historical Chart Section -->
+        <div class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 class="text-lg font-semibold">Probability Trends Over Time</h3>
+              <p class="text-sm text-slate-500">Historical win probability for top teams.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3">
+              <div class="flex items-center gap-2">
+                <label for="team-count" class="text-xs text-slate-500">Teams:</label>
+                <select id="team-count" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none">
+                  <option value="5">Top 5</option>
+                  <option value="10" selected>Top 10</option>
+                  <option value="15">Top 15</option>
+                  <option value="20">Top 20</option>
+                </select>
+              </div>
+              <div class="flex items-center gap-2">
+                <label for="days-back" class="text-xs text-slate-500">Period:</label>
+                <select id="days-back" class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none">
+                  <option value="7">Last 7 days</option>
+                  <option value="14">Last 14 days</option>
+                  <option value="30" selected>Last 30 days</option>
+                  <option value="60">Last 60 days</option>
+                </select>
+              </div>
+              <button
+                id="fetch-history-btn"
+                class="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0"
+                type="button"
+              >
+                <span id="history-btn-text">Load Chart</span>
+                <svg id="history-spinner" class="hidden h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div id="history-status" class="mt-4 hidden rounded-lg p-3 text-sm"></div>
+
+          <div id="chart-container" class="mt-6 hidden">
+            <div class="relative h-[400px] w-full">
+              <canvas id="probability-chart"></canvas>
+            </div>
+            <div id="chart-cache-info" class="mt-3 text-xs text-slate-400"></div>
+          </div>
+
+          <div id="chart-placeholder" class="mt-6 flex h-[300px] items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50">
+            <div class="text-center">
+              <svg class="mx-auto h-12 w-12 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path>
+              </svg>
+              <p class="mt-2 text-sm text-slate-400">Click "Load Chart" to view historical trends</p>
+              <p class="mt-1 text-xs text-slate-300">Data is cached for 6 hours</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-2xl border border-slate-100 bg-slate-50/50 p-6">
+          <h3 class="text-sm font-semibold text-slate-700">How to Read the Data</h3>
+          <ul class="mt-3 space-y-2 text-xs text-slate-500">
+            <li><strong>Win Prob %:</strong> The midpoint between bid and ask prices - represents the market's implied probability that this team wins the tournament.</li>
+            <li><strong>Bid:</strong> The highest price someone is willing to pay for a "yes" contract (team wins).</li>
+            <li><strong>Ask:</strong> The lowest price someone is willing to sell a "yes" contract.</li>
+            <li><strong>Volume:</strong> Total number of contracts traded for this team.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <script src="js/metrics.js"></script>
+  </body>
+</html>
