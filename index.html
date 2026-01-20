@@ -42,12 +42,8 @@
         Loading matches...
       </div>
 
-      <section class="mx-auto mt-10 max-w-6xl space-y-4">
+      <section class="mx-auto mt-2 max-w-6xl space-y-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h2 class="text-2xl font-semibold">Group Standings</h2>
-            <p class="text-sm text-slate-600">Top two and best third from each group based on your picks.</p>
-          </div>
           <div class="flex flex-wrap items-center gap-3">
             <div class="text-xs uppercase tracking-[0.35em] text-slate-400">Groups A-L</div>
             <button
@@ -57,6 +53,27 @@
             >
               Randomize Picks
             </button>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <div id="pick-summary" class="text-xs text-slate-500">Missing picks: 0</div>
+          <div class="h-2 w-full rounded-full bg-slate-100">
+            <div id="pick-progress" class="h-2 rounded-full bg-emerald-200" style="width: 0%"></div>
+          </div>
+        </div>
+        
+      </section>
+
+      <section class="mx-auto mt-10 max-w-6xl space-y-4">
+        <div id="groups" class="mx-auto mt-12 max-w-6xl space-y-10"></div>
+      </section>
+      
+
+      <section class="mx-auto mt-10 max-w-6xl space-y-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 class="text-2xl font-semibold">Group Standings</h2>
+            <p class="text-sm text-slate-600">Top two and best third from each group based on your picks.</p>
           </div>
         </div>
         <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500">
@@ -69,18 +86,19 @@
             Third
           </span>
         </div>
-        <div class="space-y-2">
-          <div id="pick-summary" class="text-xs text-slate-500">Missing picks: 0</div>
-          <div class="h-2 w-full rounded-full bg-slate-100">
-            <div id="pick-progress" class="h-2 rounded-full bg-emerald-200" style="width: 0%"></div>
-          </div>
-        </div>
+
         <div id="standings" class="grid gap-4 md:grid-cols-2 xl:grid-cols-4"></div>
+      </section>
+      
+
+      <section class="mx-auto mt-12 max-w-6xl space-y-4">
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
               <h3 class="text-lg font-semibold">Third-Place Rankings</h3>
-              <p class="text-xs text-slate-500">All third-place teams ranked by points, then goal difference.</p>
+              <p class="text-xs text-slate-500">
+                All third-place teams ranked by points, then goal difference. Drag and drop rows to adjust the order.
+              </p>
             </div>
             <span class="rounded-full bg-slate-100 px-3 py-1 text-[11px] uppercase tracking-widest text-slate-500">Top 8 Advance</span>
           </div>
@@ -88,6 +106,7 @@
             <table class="w-full text-left text-xs">
               <thead class="bg-slate-50 text-[11px] uppercase tracking-widest text-slate-400">
                 <tr>
+                  <th class="px-3 py-2 text-center">Ranking</th>
                   <th class="px-3 py-2">Team</th>
                   <th class="px-3 py-2 text-center">Group</th>
                   <th class="px-3 py-2 text-center">P</th>
@@ -102,13 +121,11 @@
         </div>
       </section>
 
-      <div id="groups" class="mx-auto mt-12 max-w-6xl space-y-10"></div>
-
       <section class="mx-auto mt-12 max-w-6xl space-y-4">
         <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 class="text-2xl font-semibold">Knockout Bracket</h2>
-            <p class="text-sm text-slate-600">Predicted bracket built from your group picks.</p>
+            <p class="text-sm text-slate-600">Pick winners to advance through the knockout rounds.</p>
           </div>
           <div class="text-xs uppercase tracking-[0.35em] text-slate-400">Round of 32 - Final</div>
         </div>
@@ -133,7 +150,7 @@
         <div data-role="status" class="absolute right-4 top-4 rounded-full bg-amber-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-amber-700"></div>
         <div class="flex items-center justify-between gap-2">
           <div data-role="match-number" class="text-xs uppercase tracking-[0.25em] text-slate-400"></div>
-          <div data-role="match-date" class="text-xs font-medium text-slate-500"></div>
+          <div data-role="match-date" class="text-xs font-medium text-slate-500 pr-20"></div>
         </div>
         <div class="mt-4 flex items-center justify-between">
           <div class="flex items-center gap-2">
@@ -195,8 +212,13 @@
             <span data-role="away-name" class="font-medium"></span>
           </div>
         </div>
-        <div class="mt-3 text-[11px] text-slate-500">
-          <span data-role="stadium"></span>
+        <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+          <span class="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Pick winner</span>
+          <div data-role="pick-group" class="flex flex-wrap gap-2"></div>
+        </div>
+        <div class="mt-3 space-y-1 text-[11px] text-slate-500">
+          <div data-role="match-date"></div>
+          <div data-role="stadium"></div>
         </div>
       </article>
     </template>
@@ -292,7 +314,15 @@
 
       const persistPicks = () => {
         const baseUrl = `${window.location.pathname}${window.location.search}`;
-        const hasPicks = Object.keys(cachedPicks).length > 0;
+        const knockoutPicks = cachedPicks?.knockout || {};
+        const thirdPlaceOrder = cachedPicks?.thirdPlaceOrder || [];
+        const standingsOrder = cachedPicks?.standingsOrder || {};
+        const { knockout, ...groupPicks } = cachedPicks;
+        const hasGroupPicks = Object.keys(groupPicks || {}).length > 0;
+        const hasKnockoutPicks = Object.keys(knockoutPicks).length > 0;
+        const hasThirdPlaceOrder = thirdPlaceOrder.length > 0;
+        const hasStandingsOrder = Object.keys(standingsOrder).length > 0;
+        const hasPicks = hasGroupPicks || hasKnockoutPicks || hasThirdPlaceOrder || hasStandingsOrder;
         if (!hasPicks) {
           history.replaceState(null, "", baseUrl);
           return;
@@ -311,6 +341,22 @@
         } catch (error) {
           return {};
         }
+      };
+
+      const normalizePicks = (picks) => {
+        if (!picks || typeof picks !== "object" || Array.isArray(picks)) {
+          return { knockout: {}, thirdPlaceOrder: [], standingsOrder: {} };
+        }
+        if (!picks.knockout || typeof picks.knockout !== "object") {
+          picks.knockout = {};
+        }
+        if (!Array.isArray(picks.thirdPlaceOrder)) {
+          picks.thirdPlaceOrder = [];
+        }
+        if (!picks.standingsOrder || typeof picks.standingsOrder !== "object") {
+          picks.standingsOrder = {};
+        }
+        return picks;
       };
 
       const createPickControls = (match, pickGroupEl) => {
@@ -340,7 +386,7 @@
               updatePickSummary();
               renderStandings(cachedMatches, cachedTeams, cachedPicks);
               renderGroups(cachedMatches, cachedTeams, cachedStadiums);
-              renderKnockout(cachedMatches, cachedTeams);
+              renderKnockout(cachedMatches, cachedTeams, cachedStadiums, cachedPicks);
             }
           });
 
@@ -448,17 +494,26 @@
         return groups;
       };
 
-      const getSortedRows = (group) =>
+      const getSortedRows = (group, groupLetter) =>
         Object.values(group).sort((a, b) => {
           if (b.points !== a.points) return b.points - a.points;
           if (b.gd !== a.gd) return b.gd - a.gd;
+          const tieKey = `${a.points}-${a.gd}`;
+          const order = cachedPicks?.standingsOrder?.[groupLetter]?.[tieKey] || [];
+          const orderMap = new Map(order.map((id, index) => [id, index]));
+          const aOrder = orderMap.get(a.team.id);
+          const bOrder = orderMap.get(b.team.id);
+          if (typeof aOrder === "number" && typeof bOrder === "number") {
+            return aOrder - bOrder;
+          }
           if (b.gf !== a.gf) return b.gf - a.gf;
           return a.team.name.localeCompare(b.team.name);
         });
 
       const renderThirdPlaceTable = (groups) => {
+        cachedThirdPlaceGroups = groups;
         const thirdPlaceRows = Object.entries(groups).map(([groupLetter, group]) => {
-          const rows = getSortedRows(group);
+          const rows = getSortedRows(group, groupLetter);
           return { groupLetter, ...rows[2] };
         });
 
@@ -472,12 +527,73 @@
         const tableBody = document.getElementById("third-place-table");
         tableBody.innerHTML = "";
 
-        thirdPlaceRows.forEach((row, index) => {
+        const rowsById = new Map(thirdPlaceRows.map((row) => [row.team.id, row]));
+        const defaultOrder = thirdPlaceRows.map((row) => row.team.id);
+        const storedOrder = cachedPicks.thirdPlaceOrder || [];
+        const normalizedOrder = storedOrder
+          .filter((id) => rowsById.has(id))
+          .concat(defaultOrder.filter((id) => !storedOrder.includes(id)));
+
+        const isSameOrder =
+          normalizedOrder.length === storedOrder.length &&
+          normalizedOrder.every((id, index) => id === storedOrder[index]);
+
+        if (!isSameOrder) {
+          cachedPicks.thirdPlaceOrder = normalizedOrder;
+          persistPicks();
+        }
+
+        const applyMove = (order, fromId, toId) => {
+          const fromIndex = order.indexOf(fromId);
+          const toIndex = order.indexOf(toId);
+          if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return order;
+          const updated = [...order];
+          const [moved] = updated.splice(fromIndex, 1);
+          updated.splice(toIndex, 0, moved);
+          return updated;
+        };
+
+        if (!tableBody.dataset.dragReady) {
+          tableBody.dataset.dragReady = "true";
+          tableBody.addEventListener("dragover", (event) => {
+            event.preventDefault();
+          });
+          tableBody.addEventListener("drop", (event) => {
+            event.preventDefault();
+            const targetRow = event.target.closest("tr[data-team-id]");
+            const sourceId =
+              thirdPlaceDragSourceId || Number(event.dataTransfer.getData("text/plain"));
+            if (!targetRow || !sourceId) return;
+            const targetId = Number(targetRow.dataset.teamId);
+            cachedPicks.thirdPlaceOrder = applyMove(cachedPicks.thirdPlaceOrder, sourceId, targetId);
+            thirdPlaceDragSourceId = null;
+            persistPicks();
+            renderThirdPlaceTable(cachedThirdPlaceGroups);
+          });
+        }
+
+        normalizedOrder.forEach((teamId, index) => {
+          const row = rowsById.get(teamId);
+          if (!row) return;
           const tr = document.createElement("tr");
+          tr.dataset.teamId = row.team.id;
+          tr.draggable = true;
+          tr.title = "Drag to reorder";
+          tr.className = "cursor-grab";
           if (index < 8) {
-            tr.className = "bg-emerald-50/50";
+            tr.classList.add("bg-emerald-50/50");
           }
+          tr.addEventListener("dragstart", (event) => {
+            thirdPlaceDragSourceId = row.team.id;
+            event.dataTransfer.effectAllowed = "move";
+            event.dataTransfer.setData("text/plain", String(row.team.id));
+            tr.classList.add("opacity-60");
+          });
+          tr.addEventListener("dragend", () => {
+            tr.classList.remove("opacity-60");
+          });
           tr.innerHTML = `
+            <td class="px-3 py-2 text-center font-semibold text-slate-500">${index + 1}</td>
             <td class="px-3 py-2 font-medium">
               <div class="flex items-center gap-2">
                 <img class="h-4 w-6 rounded-sm border border-slate-200 object-cover" src="${row.team.flag_emoji || ""}" alt="${row.team.name} flag" />
@@ -503,7 +619,13 @@
           groupCard.querySelector("h3").textContent = `Group ${groupLetter}`;
           const tbody = groupCard.querySelector("tbody");
 
-          const rows = getSortedRows(groups[groupLetter]).slice(0, 4);
+          const rows = getSortedRows(groups[groupLetter], groupLetter).slice(0, 4);
+          const tieGroups = rows.reduce((acc, row) => {
+            const key = `${row.points}-${row.gd}`;
+            acc[key] = acc[key] || [];
+            acc[key].push(row);
+            return acc;
+          }, {});
 
           rows.forEach((row, index) => {
             const tr = document.createElement("tr");
@@ -512,23 +634,85 @@
             } else if (index === 2) {
               tr.className = "bg-amber-50/60";
             }
-            tr.innerHTML = `
-              <td class="px-3 py-2 font-medium">
-                <div class="flex items-center gap-2">
-                  <img class="h-4 w-6 rounded-sm border border-slate-200 object-cover" src="${row.team.flag_emoji || ""}" alt="${row.team.name} flag" />
-                  <span>${row.team.name}</span>
-                </div>
-              </td>
-              <td class="px-3 py-2 text-center">${row.played}</td>
-              <td class="px-3 py-2 text-center">${row.gd}</td>
-              <td class="px-3 py-2 text-center font-semibold text-slate-900">${row.points}</td>
+            const tieKey = `${row.points}-${row.gd}`;
+            const tieRows = tieGroups[tieKey] || [];
+            const showTieOrder = tieRows.length > 1;
+            const tieDefaults = [...tieRows]
+              .sort((a, b) => {
+                if (b.gf !== a.gf) return b.gf - a.gf;
+                return a.team.name.localeCompare(b.team.name);
+              })
+              .map((item) => item.team.id);
+            const storedOrder = cachedPicks?.standingsOrder?.[groupLetter]?.[tieKey] || [];
+            const normalizedOrder = storedOrder
+              .filter((id) => tieDefaults.includes(id))
+              .concat(tieDefaults.filter((id) => !storedOrder.includes(id)));
+            if (showTieOrder && normalizedOrder.length > 0) {
+              cachedPicks.standingsOrder[groupLetter] = cachedPicks.standingsOrder[groupLetter] || {};
+              cachedPicks.standingsOrder[groupLetter][tieKey] = normalizedOrder;
+            }
+
+            const teamCell = document.createElement("td");
+            teamCell.className = "px-3 py-2 font-medium";
+            teamCell.innerHTML = `
+              <div class="flex flex-wrap items-center gap-2">
+                <img class="h-4 w-6 rounded-sm border border-slate-200 object-cover" src="${row.team.flag_emoji || ""}" alt="${row.team.name} flag" />
+                <span>${row.team.name}</span>
+              </div>
             `;
+
+            if (showTieOrder) {
+              const orderGroup = cachedPicks.standingsOrder[groupLetter][tieKey];
+              const orderIndex = orderGroup.indexOf(row.team.id);
+              const select = document.createElement("select");
+              select.className =
+                "ml-2 rounded-full border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500";
+              select.title = "Tie-break order";
+              for (let optionIndex = 0; optionIndex < orderGroup.length; optionIndex += 1) {
+                const option = document.createElement("option");
+                option.value = optionIndex + 1;
+                option.textContent = `Order ${optionIndex + 1}`;
+                if (optionIndex === orderIndex) option.selected = true;
+                select.appendChild(option);
+              }
+              select.addEventListener("change", () => {
+                const newPosition = Number(select.value) - 1;
+                const currentIndex = orderGroup.indexOf(row.team.id);
+                if (currentIndex === newPosition) return;
+                const updated = [...orderGroup];
+                updated.splice(currentIndex, 1);
+                updated.splice(newPosition, 0, row.team.id);
+                cachedPicks.standingsOrder[groupLetter][tieKey] = updated;
+                persistPicks();
+                renderStandings(cachedMatches, cachedTeams, cachedPicks);
+                renderKnockout(cachedMatches, cachedTeams, cachedStadiums, cachedPicks);
+              });
+              teamCell.querySelector("div")?.appendChild(select);
+            }
+
+            const playedCell = document.createElement("td");
+            playedCell.className = "px-3 py-2 text-center";
+            playedCell.textContent = row.played;
+
+            const gdCell = document.createElement("td");
+            gdCell.className = "px-3 py-2 text-center";
+            gdCell.textContent = row.gd;
+
+            const ptsCell = document.createElement("td");
+            ptsCell.className = "px-3 py-2 text-center font-semibold text-slate-900";
+            ptsCell.textContent = row.points;
+
+            tr.appendChild(teamCell);
+            tr.appendChild(playedCell);
+            tr.appendChild(gdCell);
+            tr.appendChild(ptsCell);
             tbody.appendChild(tr);
           });
 
           standingsEl.appendChild(groupCard);
         });
 
+        persistPicks();
         renderThirdPlaceTable(groups);
       };
 
@@ -564,11 +748,11 @@
         });
       };
 
-      const buildKnockoutBracket = (groups) => {
+      const buildKnockoutBracket = (groups, picks) => {
         const groupLetters = Object.keys(groups).sort();
         const groupRows = groupLetters.map((letter) => ({
           letter,
-          rows: getSortedRows(groups[letter]),
+          rows: getSortedRows(groups[letter], letter),
         }));
 
         const topThirds = groupRows
@@ -586,37 +770,40 @@
         const thirdSeeds = topThirds.map((row) => ({ seed: `${row.group}3`, ...row }));
         const qualified = [...firstSeeds, ...secondSeeds, ...thirdSeeds];
 
-        const pickWinner = (a, b) => {
-          if (!a) return b;
-          if (!b) return a;
-          if (a.points !== b.points) return a.points > b.points ? a : b;
-          if (a.gd !== b.gd) return a.gd > b.gd ? a : b;
-          if (a.gf !== b.gf) return a.gf > b.gf ? a : b;
-          return a.team.name.localeCompare(b.team.name) <= 0 ? a : b;
+        const pickWinner = (home, away, matchKey) => {
+          if (!home && !away) return null;
+          if (home && !away) return home;
+          if (away && !home) return away;
+          const pickId = picks?.knockout?.[matchKey];
+          if (pickId === home.team.id) return home;
+          if (pickId === away.team.id) return away;
+          return null;
         };
 
-        const buildRound = (teams) => {
+        const buildRound = (teams, roundKey) => {
           const matches = [];
           const winners = [];
           for (let i = 0; i < teams.length; i += 2) {
             const home = teams[i] || null;
             const away = teams[i + 1] || null;
-            const winner = pickWinner(home, away);
-            matches.push({ home, away, winner });
+            const matchKey = `${roundKey}-${i / 2 + 1}`;
+            const winner = pickWinner(home, away, matchKey);
+            matches.push({ home, away, winner, key: matchKey });
             winners.push(winner);
           }
           return { matches, winners };
         };
 
-        const roundOf32 = buildRound(qualified);
-        const roundOf16 = buildRound(roundOf32.winners);
-        const quarterfinals = buildRound(roundOf16.winners);
-        const semifinals = buildRound(quarterfinals.winners);
-        const finalMatch = buildRound(semifinals.winners);
-        const thirdPlaceTeams = semifinals.matches.map((match) =>
-          match.home === match.winner ? match.away : match.home
-        );
-        const thirdPlace = buildRound(thirdPlaceTeams);
+        const roundOf32 = buildRound(qualified, "round32");
+        const roundOf16 = buildRound(roundOf32.winners, "round16");
+        const quarterfinals = buildRound(roundOf16.winners, "quarters");
+        const semifinals = buildRound(quarterfinals.winners, "semis");
+        const finalMatch = buildRound(semifinals.winners, "final");
+        const thirdPlaceTeams = semifinals.matches.map((match) => {
+          if (!match.home || !match.away || !match.winner) return null;
+          return match.home === match.winner ? match.away : match.home;
+        });
+        const thirdPlace = buildRound(thirdPlaceTeams, "third");
 
         return {
           roundOf32: roundOf32.matches,
@@ -628,18 +815,76 @@
         };
       };
 
-      const renderKnockout = (matches, teams) => {
+      const renderKnockout = (matches, teams, stadiums, picks) => {
         const groups = buildStandings(matches, teams, cachedPicks);
-        const bracket = buildKnockoutBracket(groups);
+        const bracket = buildKnockoutBracket(groups, picks);
+        const stadiumsById = new Map(stadiums.map((stadium) => [stadium.id, stadium]));
+        const knockoutMatchesByRound = matches
+          .filter((match) => match.round && match.round.startsWith("knockout_stage"))
+          .sort((a, b) => a.match_number - b.match_number)
+          .reduce((acc, match) => {
+            acc[match.round] = acc[match.round] || [];
+            acc[match.round].push(match);
+            return acc;
+          }, {});
+        const roundLookup = {
+          round32: "knockout_stage_roundof32",
+          round16: "knockout_stage_roundof16",
+          quarters: "knockout_stage_quarterfinal",
+          semis: "knockout_stage_semifinal",
+          third: "knockout_stage_thirdplace",
+          final: "knockout_stage_final",
+        };
 
         const columns = [
-          { title: "Round of 32", matches: bracket.roundOf32 },
-          { title: "Round of 16", matches: bracket.roundOf16 },
-          { title: "Quarterfinals", matches: bracket.quarterfinals },
-          { title: "Semifinals", matches: bracket.semifinals },
+          { title: "Round of 32", matches: bracket.roundOf32, roundKey: "round32" },
+          { title: "Round of 16", matches: bracket.roundOf16, roundKey: "round16" },
+          { title: "Quarterfinals", matches: bracket.quarterfinals, roundKey: "quarters" },
+          { title: "Semifinals", matches: bracket.semifinals, roundKey: "semis" },
         ];
 
         knockoutEl.innerHTML = "";
+
+        const createKnockoutPickControls = (match, pickGroupEl) => {
+          if (!pickGroupEl) return;
+          pickGroupEl.innerHTML = "";
+          const options = [
+            { side: "home", label: match.home?.team?.name, id: match.home?.team?.id },
+            { side: "away", label: match.away?.team?.name, id: match.away?.team?.id },
+          ];
+
+          options.forEach((option) => {
+            const label = document.createElement("label");
+            label.className = option.id ? "cursor-pointer" : "opacity-40";
+
+            const input = document.createElement("input");
+            input.type = "radio";
+            input.name = `pick-${match.key}`;
+            input.value = option.id || "";
+            input.disabled = !option.id;
+            input.className = "peer sr-only";
+            if (option.id && cachedPicks?.knockout?.[match.key] === option.id) {
+              input.checked = true;
+            }
+
+            input.addEventListener("change", () => {
+              if (input.checked && option.id) {
+                cachedPicks.knockout[match.key] = option.id;
+                persistPicks();
+                renderKnockout(cachedMatches, cachedTeams, cachedStadiums, cachedPicks);
+              }
+            });
+
+            const pill = document.createElement("span");
+            pill.className =
+              "inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500 transition peer-checked:border-emerald-500 peer-checked:bg-emerald-500 peer-checked:text-white";
+            pill.textContent = option.label || "TBD";
+
+            label.appendChild(input);
+            label.appendChild(pill);
+            pickGroupEl.appendChild(label);
+          });
+        };
 
         columns.forEach((columnData) => {
           const column = document.createElement("div");
@@ -663,7 +908,18 @@
             card.querySelector('[data-role="away-flag"]').alt = `${awayTeam.name} flag`;
             card.querySelector('[data-role="away-name"]').textContent = awayTeam.name;
 
-            card.querySelector('[data-role="stadium"]').textContent = "Stadium TBD";
+            const matchMeta = knockoutMatchesByRound[roundLookup[columnData.roundKey]]?.[index] || null;
+            const dateEl = card.querySelector('[data-role="match-date"]');
+            const stadiumEl = card.querySelector('[data-role="stadium"]');
+            if (matchMeta) {
+              const stadium = stadiumsById.get(matchMeta.stadium_id);
+              dateEl.textContent = formatDate(matchMeta.scheduled_datetime);
+              stadiumEl.textContent = stadium ? stadium.name : "Stadium TBD";
+            } else {
+              dateEl.textContent = "Date TBD";
+              stadiumEl.textContent = "Stadium TBD";
+            }
+            createKnockoutPickControls(match, card.querySelector('[data-role="pick-group"]'));
 
             column.appendChild(card);
           });
@@ -679,8 +935,8 @@
         finalColumn.appendChild(finalHeader);
 
         [
-          { title: "Third Place", matches: bracket.thirdPlace },
-          { title: "Final", matches: bracket.final },
+          { title: "Third Place", matches: bracket.thirdPlace, roundKey: "third" },
+          { title: "Final", matches: bracket.final, roundKey: "final" },
         ].forEach((columnData) => {
           columnData.matches.forEach((match, index) => {
             const card = knockoutTemplate.content.cloneNode(true);
@@ -696,7 +952,18 @@
             card.querySelector('[data-role="away-flag"]').alt = `${awayTeam.name} flag`;
             card.querySelector('[data-role="away-name"]').textContent = awayTeam.name;
 
-            card.querySelector('[data-role="stadium"]').textContent = "Stadium TBD";
+            const matchMeta = knockoutMatchesByRound[roundLookup[columnData.roundKey]]?.[index] || null;
+            const dateEl = card.querySelector('[data-role="match-date"]');
+            const stadiumEl = card.querySelector('[data-role="stadium"]');
+            if (matchMeta) {
+              const stadium = stadiumsById.get(matchMeta.stadium_id);
+              dateEl.textContent = formatDate(matchMeta.scheduled_datetime);
+              stadiumEl.textContent = stadium ? stadium.name : "Stadium TBD";
+            } else {
+              dateEl.textContent = "Date TBD";
+              stadiumEl.textContent = "Stadium TBD";
+            }
+            createKnockoutPickControls(match, card.querySelector('[data-role="pick-group"]'));
 
             finalColumn.appendChild(card);
           });
@@ -709,6 +976,8 @@
       let cachedTeams = [];
       let cachedStadiums = [];
       let cachedPicks = {};
+      let cachedThirdPlaceGroups = null;
+      let thirdPlaceDragSourceId = null;
 
       const randomizeGroupPicks = () => {
         const options = ["H", "D", "A"];
@@ -721,7 +990,7 @@
         persistPicks();
         renderStandings(cachedMatches, cachedTeams, cachedPicks);
         renderGroups(cachedMatches, cachedTeams, cachedStadiums);
-        renderKnockout(cachedMatches, cachedTeams);
+        renderKnockout(cachedMatches, cachedTeams, cachedStadiums, cachedPicks);
         updatePickSummary();
       };
 
@@ -730,11 +999,11 @@
           cachedMatches = parseJson("matches-data");
           cachedTeams = parseJson("teams-data");
           cachedStadiums = parseJson("stadiums-data");
-          cachedPicks = loadPicksFromHash();
+          cachedPicks = normalizePicks(loadPicksFromHash());
 
           renderStandings(cachedMatches, cachedTeams, cachedPicks);
           renderGroups(cachedMatches, cachedTeams, cachedStadiums);
-          renderKnockout(cachedMatches, cachedTeams);
+          renderKnockout(cachedMatches, cachedTeams, cachedStadiums, cachedPicks);
           updatePickSummary();
           statusEl.remove();
 
