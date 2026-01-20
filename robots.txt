@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://misquinielasonline.com/sitemap.xml

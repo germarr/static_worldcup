@@ -1,0 +1,269 @@
+/**
+ * World Cup 2026 Pool - Print Sheet Styles
+ * Optimized for letter-size printing
+ */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  font-size: 8px;
+  line-height: 1.3;
+  background: white;
+  color: #000;
+  padding: 0.5in 0.4in;
+}
+
+/* Header */
+.header {
+  margin-bottom: 16px;
+  border-bottom: 2px solid #000;
+  padding-bottom: 8px;
+}
+
+.header h1 {
+  font-size: 18px;
+  margin-bottom: 4px;
+  font-weight: bold;
+}
+
+.header .meta {
+  font-size: 8px;
+  color: #444;
+}
+
+/* Group Matches Section */
+.section-title {
+  font-size: 13px;
+  font-weight: bold;
+  margin: 12px 0 6px 0;
+  border-bottom: 1px solid #666;
+  padding-bottom: 2px;
+}
+
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.group-section {
+  border: 1px solid #ccc;
+  padding: 4px;
+  page-break-inside: avoid;
+}
+
+.group-title {
+  font-size: 10px;
+  font-weight: bold;
+  margin-bottom: 3px;
+  padding: 2px 4px;
+  background: #f0f0f0;
+}
+
+.group-matches-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 6.5px;
+}
+
+.group-matches-table th {
+  background: #e8e8e8;
+  padding: 1px 2px;
+  text-align: left;
+  font-weight: bold;
+  border: 1px solid #ccc;
+}
+
+.group-matches-table th:last-child {
+  text-align: center;
+}
+
+.group-matches-table td {
+  padding: 1px 2px;
+  border: 1px solid #ddd;
+}
+
+.group-matches-table td:nth-child(2) {
+  text-align: center;
+}
+
+.group-matches-table .pick-cell {
+  text-align: center;
+  font-weight: bold;
+}
+
+.group-matches-table .pick-H { background: #d4f4dd; }
+.group-matches-table .pick-D { background: #fff4d4; }
+.group-matches-table .pick-A { background: #ffd4d4; }
+
+.team-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.flag {
+  width: 10px;
+  height: 7px;
+  object-fit: cover;
+  border: 0.5px solid #ddd;
+}
+
+/* Standings Grid */
+.standings-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+  margin-bottom: 16px;
+}
+
+.standing-box {
+  border: 1px solid #ccc;
+  padding: 3px;
+  page-break-inside: avoid;
+}
+
+.standing-title {
+  font-size: 9px;
+  font-weight: bold;
+  margin-bottom: 2px;
+  padding: 2px;
+  background: #e8e8e8;
+  text-align: center;
+}
+
+.standing-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 6px;
+}
+
+.standing-table th {
+  background: #f5f5f5;
+  padding: 1px 2px;
+  text-align: center;
+  font-weight: bold;
+  border: 0.5px solid #ddd;
+}
+
+.standing-table th:first-child {
+  text-align: left;
+}
+
+.standing-table td {
+  padding: 1px 2px;
+  border: 0.5px solid #ddd;
+  text-align: center;
+}
+
+.standing-table td:first-child {
+  text-align: left;
+}
+
+.standing-table .qualified { background: #d4f4dd; font-weight: bold; }
+.standing-table .third { background: #fff4d4; font-style: italic; }
+
+
+/* Knockout Bracket */
+.bracket-container {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.bracket-round {
+  flex: 1;
+  min-width: 0;
+}
+
+.round-title {
+  font-size: 9px;
+  font-weight: bold;
+  text-align: center;
+  margin-bottom: 4px;
+  padding: 2px;
+  background: #e8e8e8;
+}
+
+.bracket-match {
+  border: 1px solid #ccc;
+  margin-bottom: 4px;
+  padding: 3px;
+  font-size: 6.5px;
+  page-break-inside: avoid;
+}
+
+.bracket-team {
+  padding: 1px 2px;
+  margin: 1px 0;
+}
+
+.bracket-team.winner {
+  background: #d4f4dd;
+  font-weight: bold;
+}
+
+.bracket-team.loser {
+  color: #999;
+}
+
+/* Final Results */
+.results-box {
+  border: 2px solid #000;
+  padding: 8px;
+  margin-top: 16px;
+  text-align: center;
+}
+
+.results-box .champion {
+  font-size: 14px;
+  font-weight: bold;
+  margin-bottom: 6px;
+}
+
+.results-box .third-place {
+  font-size: 11px;
+  margin-top: 6px;
+}
+
+/* Page break control */
+.page-break {
+  page-break-after: always;
+}
+
+.no-break {
+  page-break-inside: avoid;
+}
+
+/* Print-specific styles */
+@media print {
+  @page {
+    size: letter portrait;
+    margin: 0.5in 0.4in;
+  }
+
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  body {
+    padding: 0;
+  }
+}
+
+@media screen {
+  body {
+    max-width: 8.5in;
+    margin: 20px auto;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    padding: 0.5in 0.4in;
+  }
+}

@@ -1,0 +1,683 @@
+/**
+ * World Cup 2026 Pool - Grid View (group-grid.html)
+ * Page-specific logic for the grid view
+ */
+
+(async function() {
+  const WCP = window.WorldCupPool;
+
+  // DOM elements
+  const statusEl = document.getElementById("status");
+  const groupsEl = document.getElementById("groups");
+  const standingsTemplate = document.getElementById("standings-template");
+  const knockoutTemplate = document.getElementById("knockout-template");
+  const standingsEl = document.getElementById("standings");
+  const knockoutEl = document.getElementById("knockout");
+  const pickSummaryEl = document.getElementById("pick-summary");
+  const pickProgressEl = document.getElementById("pick-progress");
+  const winnerDetailsEl = document.getElementById("winner-details");
+  const thirdPlaceDetailsEl = document.getElementById("third-place-details");
+  const printButton = document.getElementById("print-pool");
+  const randomizeKnockoutButton = document.getElementById("randomize-knockout");
+  const filterButtons = Array.from(document.querySelectorAll(".filter-button"));
+
+  let currentSort = "match";
+
+  /**
+   * Get sort value for a match
+   */
+  const getSortValue = (match) => {
+    const stadium = WCP.stadiumsById.get(match.stadium_id);
+    const homeTeam = WCP.teamsById.get(match.home_team_id);
+    const awayTeam = WCP.teamsById.get(match.away_team_id);
+    if (currentSort === "group") return match.group_letter || "";
+    if (currentSort === "stadium") return stadium?.name || "";
+    if (currentSort === "home-country") return homeTeam?.name || "";
+    if (currentSort === "away-country") return awayTeam?.name || "";
+    return match.match_number || 0;
+  };
+
+  /**
+   * Compare matches for sorting
+   */
+  const compareMatches = (a, b) => {
+    if (currentSort === "match") return (a.match_number || 0) - (b.match_number || 0);
+    const aValue = getSortValue(a);
+    const bValue = getSortValue(b);
+    if (typeof aValue === "number" && typeof bValue === "number") {
+      return aValue - bValue;
+    }
+    const textCompare = String(aValue).localeCompare(String(bValue));
+    if (textCompare !== 0) return textCompare;
+    return (a.match_number || 0) - (b.match_number || 0);
+  };
+
+  /**
+   * Create a match row for the grid table
+   */
+  const createMatchRow = (match) => {
+    const tr = document.createElement("tr");
+    tr.className = "hover:bg-slate-50/80";
+
+    const currentPick = WCP.picks[match.id];
+    const statusText = currentPick ? "Picked" : "Open";
+    const statusClass = currentPick
+      ? "border-emerald-200 bg-emerald-100 text-emerald-700"
+      : "border-amber-200 bg-amber-100 text-amber-700";
+
+    const homeTeam = WCP.teamsById.get(match.home_team_id) || { name: "TBD", flag_emoji: "" };
+    const awayTeam = WCP.teamsById.get(match.away_team_id) || { name: "TBD", flag_emoji: "" };
+    const stadium = WCP.stadiumsById.get(match.stadium_id);
+
+    const groupCell = document.createElement("td");
+    groupCell.className = "px-3 py-2 text-center font-semibold text-slate-600";
+    groupCell.textContent = match.group_letter || "-";
+
+    const matchCell = document.createElement("td");
+    matchCell.className = "px-3 py-2 text-center font-semibold text-slate-600";
+    matchCell.textContent = `#${match.match_number}`;
+
+    const statusCell = document.createElement("td");
+    statusCell.className = "px-3 py-2";
+    statusCell.innerHTML = `<span class="rounded-full border px-3 py-1 text-[10px] font-semibold uppercase tracking-widest ${statusClass}">${statusText}</span>`;
+
+    const dateCell = document.createElement("td");
+    dateCell.className = "px-3 py-2 text-slate-500";
+    dateCell.textContent = WCP.formatDate(match.scheduled_datetime);
+
+    const homeCell = document.createElement("td");
+    homeCell.className = "px-3 py-2 font-medium";
+    homeCell.innerHTML = `
+      <div class="flex items-center gap-2">
+        <img class="h-4 w-6 rounded-sm border border-slate-200 object-cover" src="${homeTeam.flag_emoji || ""}" alt="${homeTeam.name} flag" />
+        <span>${homeTeam.name}</span>
+      </div>
+    `;
+
+    const awayCell = document.createElement("td");
+    awayCell.className = "px-3 py-2 font-medium";
+    awayCell.innerHTML = `
+      <div class="flex items-center gap-2">
+        <img class="h-4 w-6 rounded-sm border border-slate-200 object-cover" src="${awayTeam.flag_emoji || ""}" alt="${awayTeam.name} flag" />
+        <span>${awayTeam.name}</span>
+      </div>
+    `;
+
+    const stadiumCell = document.createElement("td");
+    stadiumCell.className = "px-3 py-2";
+    stadiumCell.textContent = stadium ? stadium.name : "Stadium TBD";
+
+    const locationCell = document.createElement("td");
+    locationCell.className = "px-3 py-2 text-slate-500";
+    locationCell.textContent = stadium ? `${stadium.city}, ${stadium.country}` : "Location TBD";
+
+    const pickCell = document.createElement("td");
+    pickCell.className = "px-3 py-2";
+    const pickGroupEl = document.createElement("div");
+    pickGroupEl.className = "grid grid-cols-3 gap-1";
+    WCP.createPickControls(match, pickGroupEl, "grid", () => {
+      WCP.updatePickSummary(pickSummaryEl, pickProgressEl);
+      renderStandings();
+      renderGroups();
+      renderKnockout();
+    });
+    pickCell.appendChild(pickGroupEl);
+
+    tr.appendChild(groupCell);
+    tr.appendChild(matchCell);
+    tr.appendChild(statusCell);
+    tr.appendChild(dateCell);
+    tr.appendChild(homeCell);
+    tr.appendChild(awayCell);
+    tr.appendChild(stadiumCell);
+    tr.appendChild(locationCell);
+    tr.appendChild(pickCell);
+
+    return tr;
+  };
+
+  /**
+   * Render groups as a grid table
+   */
+  const renderGroups = () => {
+    groupsEl.innerHTML = "";
+
+    WCP.matches
+      .filter((match) => match.round === "group_stage")
+      .sort((a, b) => compareMatches(a, b))
+      .forEach((match) => {
+        groupsEl.appendChild(createMatchRow(match));
+      });
+  };
+
+  /**
+   * Render third-place table
+   */
+  const renderThirdPlaceTable = (groups) => {
+    WCP.cachedThirdPlaceGroups = groups;
+    const thirdPlaceRows = Object.entries(groups).map(([groupLetter, group]) => {
+      const rows = WCP.getSortedRows(group, groupLetter);
+      return { groupLetter, ...rows[2] };
+    });
+
+    thirdPlaceRows.sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.gd !== a.gd) return b.gd - a.gd;
+      if (b.gf !== a.gf) return b.gf - a.gf;
+      return a.team.name.localeCompare(b.team.name);
+    });
+
+    const tableBody = document.getElementById("third-place-table");
+    tableBody.innerHTML = "";
+
+    const rowsById = new Map(thirdPlaceRows.map((row) => [row.team.id, row]));
+    const defaultOrder = thirdPlaceRows.map((row) => row.team.id);
+    const storedOrder = WCP.picks.thirdPlaceOrder || [];
+    const normalizedOrder = storedOrder
+      .filter((id) => rowsById.has(id))
+      .concat(defaultOrder.filter((id) => !storedOrder.includes(id)));
+
+    const isSameOrder =
+      normalizedOrder.length === storedOrder.length &&
+      normalizedOrder.every((id, index) => id === storedOrder[index]);
+
+    if (!isSameOrder) {
+      WCP.picks.thirdPlaceOrder = normalizedOrder;
+      WCP.persistPicks();
+    }
+
+    const applyMove = (order, fromId, toId) => {
+      const fromIndex = order.indexOf(fromId);
+      const toIndex = order.indexOf(toId);
+      if (fromIndex < 0 || toIndex < 0 || fromIndex === toIndex) return order;
+      const updated = [...order];
+      const [moved] = updated.splice(fromIndex, 1);
+      updated.splice(toIndex, 0, moved);
+      return updated;
+    };
+
+    if (!tableBody.dataset.dragReady) {
+      tableBody.dataset.dragReady = "true";
+      tableBody.addEventListener("dragover", (event) => {
+        event.preventDefault();
+        tableBody.classList.add("drag-active");
+        const targetRow = event.target.closest("tr[data-team-id]");
+        tableBody.querySelectorAll("tr.drag-over").forEach((row) => {
+          row.classList.remove("drag-over");
+        });
+        if (targetRow && !targetRow.classList.contains("dragging")) {
+          targetRow.classList.add("drag-over");
+        }
+      });
+      tableBody.addEventListener("drop", (event) => {
+        event.preventDefault();
+        const targetRow = event.target.closest("tr[data-team-id]");
+        const sourceId = WCP.thirdPlaceDragSourceId || Number(event.dataTransfer.getData("text/plain"));
+        if (!targetRow || !sourceId) return;
+        const targetId = Number(targetRow.dataset.teamId);
+        WCP.picks.thirdPlaceOrder = applyMove(WCP.picks.thirdPlaceOrder, sourceId, targetId);
+        WCP.thirdPlaceDragSourceId = null;
+        WCP.persistPicks();
+        renderThirdPlaceTable(WCP.cachedThirdPlaceGroups);
+        tableBody.classList.remove("drag-active");
+      });
+    }
+
+    normalizedOrder.forEach((teamId, index) => {
+      const row = rowsById.get(teamId);
+      if (!row) return;
+      const tr = document.createElement("tr");
+      tr.dataset.teamId = row.team.id;
+      tr.draggable = true;
+      tr.title = "Drag to reorder";
+      tr.className = "cursor-grab";
+      if (index < 8) {
+        tr.classList.add("bg-emerald-50/50");
+      }
+      tr.addEventListener("dragstart", (event) => {
+        WCP.thirdPlaceDragSourceId = row.team.id;
+        event.dataTransfer.effectAllowed = "move";
+        event.dataTransfer.setData("text/plain", String(row.team.id));
+        tr.classList.add("dragging");
+      });
+      tr.addEventListener("dragend", () => {
+        tr.classList.remove("dragging");
+        tableBody.classList.remove("drag-active");
+        tableBody.querySelectorAll("tr.drag-over").forEach((rowEl) => {
+          rowEl.classList.remove("drag-over");
+        });
+      });
+      tr.innerHTML = `
+        <td class="px-3 py-2 text-center font-semibold text-slate-500">${index + 1}</td>
+        <td class="px-3 py-2 font-medium">
+          <div class="flex items-center gap-2">
+            <img class="h-4 w-6 rounded-sm border border-slate-200 object-cover" src="${row.team.flag_emoji || ""}" alt="${row.team.name} flag" />
+            <span>${row.team.name}</span>
+          </div>
+        </td>
+        <td class="px-3 py-2 text-center font-semibold text-slate-600">${row.groupLetter}</td>
+        <td class="px-3 py-2 text-center">${row.played}</td>
+        <td class="px-3 py-2 text-center">${row.gd}</td>
+        <td class="px-3 py-2 text-center font-semibold text-slate-900">${row.points}</td>
+      `;
+      tableBody.appendChild(tr);
+    });
+  };
+
+  /**
+   * Render standings tables
+   */
+  const renderStandings = () => {
+    const groups = WCP.buildStandings();
+    const groupLetters = Object.keys(groups).sort();
+    standingsEl.innerHTML = "";
+
+    groupLetters.forEach((groupLetter) => {
+      const groupCard = standingsTemplate.content.cloneNode(true);
+      groupCard.querySelector("h3").textContent = `Group ${groupLetter}`;
+      const tbody = groupCard.querySelector("tbody");
+
+      const rows = WCP.getSortedRows(groups[groupLetter], groupLetter).slice(0, 4);
+      const tieGroups = rows.reduce((acc, row) => {
+        const key = `${row.points}-${row.gd}`;
+        acc[key] = acc[key] || [];
+        acc[key].push(row);
+        return acc;
+      }, {});
+
+      rows.forEach((row, index) => {
+        const tr = document.createElement("tr");
+        if (index < 2) {
+          tr.className = "bg-emerald-50/60";
+        } else if (index === 2) {
+          tr.className = "bg-amber-50/60";
+        }
+        const tieKey = `${row.points}-${row.gd}`;
+        const tieRows = tieGroups[tieKey] || [];
+        const showTieOrder = tieRows.length > 1;
+        const tieDefaults = [...tieRows]
+          .sort((a, b) => {
+            if (b.gf !== a.gf) return b.gf - a.gf;
+            return a.team.name.localeCompare(b.team.name);
+          })
+          .map((item) => item.team.id);
+        const storedOrder = WCP.picks?.standingsOrder?.[groupLetter]?.[tieKey] || [];
+        const normalizedOrder = storedOrder
+          .filter((id) => tieDefaults.includes(id))
+          .concat(tieDefaults.filter((id) => !storedOrder.includes(id)));
+        if (showTieOrder && normalizedOrder.length > 0) {
+          WCP.picks.standingsOrder[groupLetter] = WCP.picks.standingsOrder[groupLetter] || {};
+          WCP.picks.standingsOrder[groupLetter][tieKey] = normalizedOrder;
+        }
+
+        const teamCell = document.createElement("td");
+        teamCell.className = "px-3 py-2 font-medium";
+        teamCell.innerHTML = `
+          <div class="flex flex-wrap items-center gap-2">
+            <img class="h-4 w-6 rounded-sm border border-slate-200 object-cover" src="${row.team.flag_emoji || ""}" alt="${row.team.name} flag" />
+            <span>${row.team.name}</span>
+          </div>
+        `;
+
+        if (showTieOrder) {
+          const orderGroup = WCP.picks.standingsOrder[groupLetter][tieKey];
+          const orderIndex = orderGroup.indexOf(row.team.id);
+          const select = document.createElement("select");
+          select.className =
+            "ml-2 rounded-full border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500";
+          select.title = "Tie-break order";
+          for (let optionIndex = 0; optionIndex < orderGroup.length; optionIndex += 1) {
+            const option = document.createElement("option");
+            option.value = optionIndex + 1;
+            option.textContent = `Order ${optionIndex + 1}`;
+            if (optionIndex === orderIndex) option.selected = true;
+            select.appendChild(option);
+          }
+          select.addEventListener("change", () => {
+            const newPosition = Number(select.value) - 1;
+            const currentIndex = orderGroup.indexOf(row.team.id);
+            if (currentIndex === newPosition) return;
+            const updated = [...orderGroup];
+            updated.splice(currentIndex, 1);
+            updated.splice(newPosition, 0, row.team.id);
+            WCP.picks.standingsOrder[groupLetter][tieKey] = updated;
+            WCP.persistPicks();
+            renderStandings();
+            renderKnockout();
+          });
+          teamCell.querySelector("div")?.appendChild(select);
+        }
+
+        const playedCell = document.createElement("td");
+        playedCell.className = "px-3 py-2 text-center";
+        playedCell.textContent = row.played;
+
+        const gdCell = document.createElement("td");
+        gdCell.className = "px-3 py-2 text-center";
+        gdCell.textContent = row.gd;
+
+        const ptsCell = document.createElement("td");
+        ptsCell.className = "px-3 py-2 text-center font-semibold text-slate-900";
+        ptsCell.textContent = row.points;
+
+        tr.appendChild(teamCell);
+        tr.appendChild(playedCell);
+        tr.appendChild(gdCell);
+        tr.appendChild(ptsCell);
+        tbody.appendChild(tr);
+      });
+
+      standingsEl.appendChild(groupCard);
+    });
+
+    WCP.persistPicks();
+    renderThirdPlaceTable(groups);
+  };
+
+  /**
+   * Render winner cards
+   */
+  const renderWinnerCards = (bracket) => {
+    if (!winnerDetailsEl || !thirdPlaceDetailsEl) return;
+    const winnerTeam = bracket?.final?.[0]?.winner?.team || null;
+    const thirdTeam = bracket?.thirdPlace?.[0]?.winner?.team || null;
+
+    if (winnerTeam) {
+      winnerDetailsEl.innerHTML = `
+        <div class="flex items-center gap-3">
+          <img class="h-8 w-12 rounded-sm border border-emerald-200 object-cover" src="${winnerTeam.flag_emoji || ""}" alt="${winnerTeam.name} flag" />
+          <div>
+            <div class="text-sm font-semibold text-slate-900">${winnerTeam.name}</div>
+            <div class="text-xs uppercase tracking-widest text-emerald-600">Champion</div>
+          </div>
+        </div>
+      `;
+    } else {
+      winnerDetailsEl.innerHTML = '<span class="text-sm text-slate-500">Pick the final winner to reveal the champion.</span>';
+    }
+
+    if (thirdTeam) {
+      thirdPlaceDetailsEl.innerHTML = `
+        <div class="flex items-center gap-3">
+          <img class="h-6 w-9 rounded-sm border border-amber-200 object-cover" src="${thirdTeam.flag_emoji || ""}" alt="${thirdTeam.name} flag" />
+          <div>
+            <div class="text-sm font-semibold text-slate-900">${thirdTeam.name}</div>
+            <div class="text-[11px] uppercase tracking-widest text-amber-600">Third Place</div>
+          </div>
+        </div>
+      `;
+    } else {
+      thirdPlaceDetailsEl.innerHTML = "Pick the third-place winner to reveal the team.";
+    }
+  };
+
+  /**
+   * Create knockout pick controls
+   */
+  const createKnockoutPickControls = (match, pickGroupEl) => {
+    if (!pickGroupEl) return;
+    pickGroupEl.innerHTML = "";
+    const options = [
+      { side: "home", label: match.home?.team?.name, id: match.home?.team?.id },
+      { side: "away", label: match.away?.team?.name, id: match.away?.team?.id },
+    ];
+
+    options.forEach((option) => {
+      const label = document.createElement("label");
+      label.className = option.id ? "cursor-pointer" : "opacity-40";
+
+      const input = document.createElement("input");
+      input.type = "radio";
+      input.name = `pick-${match.key}`;
+      input.value = option.id || "";
+      input.disabled = !option.id;
+      input.className = "peer sr-only";
+      if (option.id && WCP.picks?.knockout?.[match.key] === option.id) {
+        input.checked = true;
+      }
+
+      input.addEventListener("change", () => {
+        if (input.checked && option.id) {
+          WCP.picks.knockout[match.key] = option.id;
+          WCP.persistPicks();
+          renderKnockout();
+        }
+      });
+
+      const pill = document.createElement("span");
+      pill.className =
+        "inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500 transition peer-checked:border-emerald-500 peer-checked:bg-emerald-500 peer-checked:text-white";
+      pill.textContent = option.label || "TBD";
+
+      label.appendChild(input);
+      label.appendChild(pill);
+      pickGroupEl.appendChild(label);
+    });
+  };
+
+  /**
+   * Render knockout bracket
+   */
+  const renderKnockout = () => {
+    const groups = WCP.buildStandings();
+    const bracket = WCP.buildKnockoutBracket(groups);
+    renderWinnerCards(bracket);
+
+    const knockoutMatchesByRound = WCP.matches
+      .filter((match) => match.round && match.round.startsWith("knockout_stage"))
+      .sort((a, b) => a.match_number - b.match_number)
+      .reduce((acc, match) => {
+        acc[match.round] = acc[match.round] || [];
+        acc[match.round].push(match);
+        return acc;
+      }, {});
+    const roundLookup = {
+      round32: "knockout_stage_roundof32",
+      round16: "knockout_stage_roundof16",
+      quarters: "knockout_stage_quarterfinal",
+      semis: "knockout_stage_semifinal",
+      third: "knockout_stage_thirdplace",
+      final: "knockout_stage_final",
+    };
+
+    const columns = [
+      { title: "Round of 32", matches: bracket.roundOf32, roundKey: "round32" },
+      { title: "Round of 16", matches: bracket.roundOf16, roundKey: "round16" },
+      { title: "Quarterfinals", matches: bracket.quarterfinals, roundKey: "quarters" },
+      { title: "Semifinals", matches: bracket.semifinals, roundKey: "semis" },
+    ];
+
+    knockoutEl.innerHTML = "";
+
+    columns.forEach((columnData) => {
+      const column = document.createElement("div");
+      column.className = "space-y-3";
+      const header = document.createElement("div");
+      header.className = "rounded-full bg-slate-100 px-3 py-1 text-[11px] uppercase tracking-widest text-slate-500";
+      header.textContent = columnData.title;
+      column.appendChild(header);
+
+      columnData.matches.forEach((match, index) => {
+        const card = knockoutTemplate.content.cloneNode(true);
+        card.querySelector('[data-role="round"]').textContent = columnData.title;
+        card.querySelector('[data-role="match-number"]').textContent = `#${index + 1}`;
+
+        const homeTeam = match.home ? match.home.team : { name: "TBD", flag_emoji: "" };
+        const awayTeam = match.away ? match.away.team : { name: "TBD", flag_emoji: "" };
+        card.querySelector('[data-role="home-flag"]').src = homeTeam.flag_emoji || "";
+        card.querySelector('[data-role="home-flag"]').alt = `${homeTeam.name} flag`;
+        card.querySelector('[data-role="home-name"]').textContent = homeTeam.name;
+        card.querySelector('[data-role="away-flag"]').src = awayTeam.flag_emoji || "";
+        card.querySelector('[data-role="away-flag"]').alt = `${awayTeam.name} flag`;
+        card.querySelector('[data-role="away-name"]').textContent = awayTeam.name;
+
+        const matchMeta = knockoutMatchesByRound[roundLookup[columnData.roundKey]]?.[index] || null;
+        const dateEl = card.querySelector('[data-role="match-date"]');
+        const stadiumEl = card.querySelector('[data-role="stadium"]');
+        if (matchMeta) {
+          const stadium = WCP.stadiumsById.get(matchMeta.stadium_id);
+          dateEl.textContent = WCP.formatDate(matchMeta.scheduled_datetime);
+          stadiumEl.textContent = stadium ? stadium.name : "Stadium TBD";
+        } else {
+          dateEl.textContent = "Date TBD";
+          stadiumEl.textContent = "Stadium TBD";
+        }
+        createKnockoutPickControls(match, card.querySelector('[data-role="pick-group"]'));
+
+        column.appendChild(card);
+      });
+
+      knockoutEl.appendChild(column);
+    });
+
+    // Finals column
+    const finalColumn = document.createElement("div");
+    finalColumn.className = "space-y-3";
+    const finalHeader = document.createElement("div");
+    finalHeader.className = "rounded-full bg-slate-900 px-3 py-1 text-[11px] uppercase tracking-widest text-white";
+    finalHeader.textContent = "Finals";
+    finalColumn.appendChild(finalHeader);
+
+    [
+      { title: "Third Place", matches: bracket.thirdPlace, roundKey: "third" },
+      { title: "Final", matches: bracket.final, roundKey: "final" },
+    ].forEach((columnData) => {
+      columnData.matches.forEach((match, index) => {
+        const card = knockoutTemplate.content.cloneNode(true);
+        card.querySelector('[data-role="round"]').textContent = columnData.title;
+        card.querySelector('[data-role="match-number"]').textContent = `#${index + 1}`;
+
+        const homeTeam = match.home ? match.home.team : { name: "TBD", flag_emoji: "" };
+        const awayTeam = match.away ? match.away.team : { name: "TBD", flag_emoji: "" };
+        card.querySelector('[data-role="home-flag"]').src = homeTeam.flag_emoji || "";
+        card.querySelector('[data-role="home-flag"]').alt = `${homeTeam.name} flag`;
+        card.querySelector('[data-role="home-name"]').textContent = homeTeam.name;
+        card.querySelector('[data-role="away-flag"]').src = awayTeam.flag_emoji || "";
+        card.querySelector('[data-role="away-flag"]').alt = `${awayTeam.name} flag`;
+        card.querySelector('[data-role="away-name"]').textContent = awayTeam.name;
+
+        const matchMeta = knockoutMatchesByRound[roundLookup[columnData.roundKey]]?.[index] || null;
+        const dateEl = card.querySelector('[data-role="match-date"]');
+        const stadiumEl = card.querySelector('[data-role="stadium"]');
+        if (matchMeta) {
+          const stadium = WCP.stadiumsById.get(matchMeta.stadium_id);
+          dateEl.textContent = WCP.formatDate(matchMeta.scheduled_datetime);
+          stadiumEl.textContent = stadium ? stadium.name : "Stadium TBD";
+        } else {
+          dateEl.textContent = "Date TBD";
+          stadiumEl.textContent = "Stadium TBD";
+        }
+        createKnockoutPickControls(match, card.querySelector('[data-role="pick-group"]'));
+
+        finalColumn.appendChild(card);
+      });
+    });
+
+    knockoutEl.appendChild(finalColumn);
+  };
+
+  /**
+   * Randomize knockout picks
+   */
+  const randomizeKnockoutPicks = () => {
+    WCP.picks.knockout = WCP.picks.knockout || {};
+    const groups = WCP.buildStandings();
+    const pickRound = (roundMatches) => {
+      roundMatches.forEach((match) => {
+        if (!match?.home || !match?.away) return;
+        const options = [match.home.team.id, match.away.team.id];
+        const pick = options[Math.floor(Math.random() * options.length)];
+        WCP.picks.knockout[match.key] = pick;
+      });
+    };
+
+    let bracket = WCP.buildKnockoutBracket(groups);
+    pickRound(bracket.roundOf32);
+    bracket = WCP.buildKnockoutBracket(groups);
+    pickRound(bracket.roundOf16);
+    bracket = WCP.buildKnockoutBracket(groups);
+    pickRound(bracket.quarterfinals);
+    bracket = WCP.buildKnockoutBracket(groups);
+    pickRound(bracket.semifinals);
+    bracket = WCP.buildKnockoutBracket(groups);
+    pickRound(bracket.thirdPlace);
+    pickRound(bracket.final);
+
+    WCP.persistPicks();
+    renderKnockout();
+  };
+
+  /**
+   * Randomize group stage picks
+   */
+  const randomizeGroupPicks = () => {
+    const options = ["H", "D", "A"];
+    WCP.matches
+      .filter((match) => match.round === "group_stage")
+      .forEach((match) => {
+        WCP.picks[match.id] = options[Math.floor(Math.random() * options.length)];
+      });
+
+    WCP.persistPicks();
+    renderStandings();
+    renderGroups();
+    renderKnockout();
+    WCP.updatePickSummary(pickSummaryEl, pickProgressEl);
+  };
+
+  /**
+   * Update filter button styles
+   */
+  const updateFilterButtons = () => {
+    filterButtons.forEach((button) => {
+      const isActive = button.dataset.sort === currentSort;
+      button.classList.toggle("ring-2", isActive);
+      button.classList.toggle("ring-emerald-400", isActive);
+    });
+  };
+
+  /**
+   * Initialize the grid view
+   */
+  const init = async () => {
+    try {
+      await WCP.loadData();
+
+      renderStandings();
+      renderGroups();
+      renderKnockout();
+      WCP.updatePickSummary(pickSummaryEl, pickProgressEl);
+      statusEl.remove();
+
+      const randomizeButton = document.getElementById("randomize-results");
+      randomizeButton?.addEventListener("click", randomizeGroupPicks);
+      randomizeKnockoutButton?.addEventListener("click", randomizeKnockoutPicks);
+      printButton?.addEventListener("click", () => {
+        const currentHash = window.location.hash;
+        window.open(`print-pool.html${currentHash}`, '_blank');
+      });
+
+      filterButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const nextSort = button.dataset.sort || "match";
+          if (currentSort === nextSort) return;
+          currentSort = nextSort;
+          updateFilterButtons();
+          renderGroups();
+        });
+      });
+      updateFilterButtons();
+    } catch (error) {
+      console.error("Failed to initialize:", error);
+      statusEl.textContent = "Failed to load data.";
+      statusEl.classList.add("text-rose-600", "border-rose-200", "bg-rose-50");
+    }
+  };
+
+  // Start initialization when DOM is ready
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", init);
+  } else {
+    init();
+  }
+})();
