@@ -18,6 +18,50 @@
       body {
         font-family: "Space Grotesk", sans-serif;
       }
+      table tbody tr {
+        transition: transform 120ms ease, box-shadow 120ms ease, background-color 120ms ease;
+      }
+      table tbody tr.dragging {
+        transform: scale(1.02);
+        box-shadow: 0 14px 26px rgba(15, 23, 42, 0.18);
+        background-color: #ffffff;
+      }
+      table tbody tr.dragging td {
+        background-color: #ffffff;
+      }
+      table tbody.drag-active tr.drag-over {
+        transform: translateY(4px);
+      }
+      table tbody tr.drag-over td {
+        background-color: #f8fafc;
+      }
+      @media print {
+        body {
+          background: white !important;
+          color: #0f172a;
+        }
+        header,
+        section,
+        article {
+          box-shadow: none !important;
+        }
+        .no-print {
+          display: none !important;
+        }
+        .sticky {
+          position: static !important;
+        }
+        main {
+          padding: 0 !important;
+        }
+        table {
+          font-size: 10px;
+        }
+        th,
+        td {
+          padding: 4px 6px !important;
+        }
+      }
     </style>
   </head>
   <body class="min-h-screen bg-gradient-to-br from-amber-50 via-slate-50 to-cyan-100 text-slate-900">
@@ -48,7 +92,7 @@
             <div class="text-xs uppercase tracking-[0.35em] text-slate-400">Groups A-L</div>
             <button
               id="randomize-results"
-              class="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-600 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm"
+              class="no-print rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-600 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm"
               type="button"
             >
               Randomize Picks
@@ -61,7 +105,49 @@
             <div id="pick-progress" class="h-2 rounded-full bg-emerald-200" style="width: 0%"></div>
           </div>
         </div>
-        
+        <div
+          id="group-filters"
+          class="sticky top-2 z-20 rounded-2xl border border-slate-200 bg-white/80 p-3 text-xs uppercase tracking-widest text-slate-500 shadow-sm backdrop-blur no-print"
+        >
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="text-[10px] font-semibold text-slate-400">Sort by</span>
+            <button
+              class="filter-button rounded-full border border-slate-900 bg-slate-900 px-3 py-1 font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-sm"
+              type="button"
+              data-sort="match"
+            >
+              Date
+            </button>
+            <button
+              class="filter-button rounded-full border border-slate-900 bg-slate-900 px-3 py-1 font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-sm"
+              type="button"
+              data-sort="group"
+            >
+              Group
+            </button>
+            <button
+              class="filter-button rounded-full border border-slate-900 bg-slate-900 px-3 py-1 font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-sm"
+              type="button"
+              data-sort="stadium"
+            >
+              Stadium
+            </button>
+            <button
+              class="filter-button rounded-full border border-slate-900 bg-slate-900 px-3 py-1 font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-sm"
+              type="button"
+              data-sort="home-country"
+            >
+              Home Country
+            </button>
+            <button
+              class="filter-button rounded-full border border-slate-900 bg-slate-900 px-3 py-1 font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-sm"
+              type="button"
+              data-sort="away-country"
+            >
+              Away Country
+            </button>
+          </div>
+        </div>
       </section>
 
       <section class="mx-auto mt-10 max-w-6xl space-y-4">
@@ -147,10 +233,49 @@
             <h2 class="text-2xl font-semibold">Knockout Bracket</h2>
             <p class="text-sm text-slate-600">Pick winners to advance through the knockout rounds.</p>
           </div>
-          <div class="text-xs uppercase tracking-[0.35em] text-slate-400">Round of 32 - Final</div>
+          <div class="flex flex-wrap items-center gap-3">
+            <button
+              id="randomize-knockout"
+              class="no-print rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-600 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm"
+              type="button"
+            >
+              Randomize Knockout
+            </button>
+            <div class="text-xs uppercase tracking-[0.35em] text-slate-400">Round of 32 - Final</div>
+          </div>
         </div>
         <div id="knockout" class="grid gap-4 overflow-x-auto pb-2 lg:grid-cols-5">
           <div class="rounded-2xl border border-slate-200 bg-white/70 p-4 text-sm text-slate-500">Loading bracket...</div>
+        </div>
+      </section>
+
+      <section class="mx-auto mt-12 max-w-6xl">
+        <div class="grid gap-4 lg:grid-cols-[2fr,1fr]">
+          <article id="winner-card" class="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 class="text-lg font-semibold">Tournament Winner</h3>
+                <p class="text-xs text-slate-500">Based on your final pick.</p>
+              </div>
+              <button
+                id="print-pool"
+                class="no-print rounded-full border border-slate-200 bg-slate-900 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition hover:-translate-y-0.5 hover:shadow-sm"
+                type="button"
+              >
+                Print Pool
+              </button>
+            </div>
+            <div id="winner-details" class="mt-5 flex flex-wrap items-center gap-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
+              <span class="text-sm text-slate-500">Pick the final winner to reveal the champion.</span>
+            </div>
+          </article>
+          <article id="third-place-card" class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <h3 class="text-lg font-semibold">Third Place</h3>
+            <p class="text-xs text-slate-500">Based on your third-place pick.</p>
+            <div id="third-place-details" class="mt-4 rounded-2xl border border-amber-200 bg-amber-50/70 p-4 text-sm text-slate-500">
+              Pick the third-place winner to reveal the team.
+            </div>
+          </article>
         </div>
       </section>
     </main>
@@ -226,6 +351,11 @@
       const knockoutEl = document.getElementById("knockout");
       const pickSummaryEl = document.getElementById("pick-summary");
       const pickProgressEl = document.getElementById("pick-progress");
+      const winnerDetailsEl = document.getElementById("winner-details");
+      const thirdPlaceDetailsEl = document.getElementById("third-place-details");
+      const printButton = document.getElementById("print-pool");
+      const randomizeKnockoutButton = document.getElementById("randomize-knockout");
+      const filterButtons = Array.from(document.querySelectorAll(".filter-button"));
 
       const parseJson = (id) => {
         const raw = document.getElementById(id)?.textContent || "[]";
@@ -577,6 +707,14 @@
           tableBody.dataset.dragReady = "true";
           tableBody.addEventListener("dragover", (event) => {
             event.preventDefault();
+            tableBody.classList.add("drag-active");
+            const targetRow = event.target.closest("tr[data-team-id]");
+            tableBody.querySelectorAll("tr.drag-over").forEach((row) => {
+              row.classList.remove("drag-over");
+            });
+            if (targetRow && !targetRow.classList.contains("dragging")) {
+              targetRow.classList.add("drag-over");
+            }
           });
           tableBody.addEventListener("drop", (event) => {
             event.preventDefault();
@@ -589,6 +727,7 @@
             thirdPlaceDragSourceId = null;
             persistPicks();
             renderThirdPlaceTable(cachedThirdPlaceGroups);
+            tableBody.classList.remove("drag-active");
           });
         }
 
@@ -607,10 +746,14 @@
             thirdPlaceDragSourceId = row.team.id;
             event.dataTransfer.effectAllowed = "move";
             event.dataTransfer.setData("text/plain", String(row.team.id));
-            tr.classList.add("opacity-60");
+            tr.classList.add("dragging");
           });
           tr.addEventListener("dragend", () => {
-            tr.classList.remove("opacity-60");
+            tr.classList.remove("dragging");
+            tableBody.classList.remove("drag-active");
+            tableBody.querySelectorAll("tr.drag-over").forEach((rowEl) => {
+              rowEl.classList.remove("drag-over");
+            });
           });
           tr.innerHTML = `
             <td class="px-3 py-2 text-center font-semibold text-slate-500">${index + 1}</td>
@@ -744,7 +887,7 @@
 
         matches
           .filter((match) => match.round === "group_stage")
-          .sort((a, b) => a.match_number - b.match_number)
+          .sort((a, b) => compareMatches(a, b, stadiumsById, teamsById))
           .forEach((match) => {
             groupsEl.appendChild(createMatchRow(match, teamsById, stadiumsById));
           });
@@ -820,6 +963,7 @@
       const renderKnockout = (matches, teams, stadiums, picks) => {
         const groups = buildStandings(matches, teams, cachedPicks);
         const bracket = buildKnockoutBracket(groups, picks);
+        renderWinnerCards(bracket);
         const stadiumsById = new Map(stadiums.map((stadium) => [stadium.id, stadium]));
         const knockoutMatchesByRound = matches
           .filter((match) => match.round && match.round.startsWith("knockout_stage"))
@@ -980,6 +1124,100 @@
       let cachedPicks = {};
       let cachedThirdPlaceGroups = null;
       let thirdPlaceDragSourceId = null;
+      let currentSort = "match";
+
+      const renderWinnerCards = (bracket) => {
+        if (!winnerDetailsEl || !thirdPlaceDetailsEl) return;
+        const winnerTeam = bracket?.final?.[0]?.winner?.team || null;
+        const thirdTeam = bracket?.thirdPlace?.[0]?.winner?.team || null;
+
+        if (winnerTeam) {
+          winnerDetailsEl.innerHTML = `
+            <div class="flex items-center gap-3">
+              <img class="h-8 w-12 rounded-sm border border-emerald-200 object-cover" src="${winnerTeam.flag_emoji || ""}" alt="${winnerTeam.name} flag" />
+              <div>
+                <div class="text-sm font-semibold text-slate-900">${winnerTeam.name}</div>
+                <div class="text-xs uppercase tracking-widest text-emerald-600">Champion</div>
+              </div>
+            </div>
+          `;
+        } else {
+          winnerDetailsEl.innerHTML = '<span class="text-sm text-slate-500">Pick the final winner to reveal the champion.</span>';
+        }
+
+        if (thirdTeam) {
+          thirdPlaceDetailsEl.innerHTML = `
+            <div class="flex items-center gap-3">
+              <img class="h-6 w-9 rounded-sm border border-amber-200 object-cover" src="${thirdTeam.flag_emoji || ""}" alt="${thirdTeam.name} flag" />
+              <div>
+                <div class="text-sm font-semibold text-slate-900">${thirdTeam.name}</div>
+                <div class="text-[11px] uppercase tracking-widest text-amber-600">Third Place</div>
+              </div>
+            </div>
+          `;
+        } else {
+          thirdPlaceDetailsEl.innerHTML = "Pick the third-place winner to reveal the team.";
+        }
+      };
+
+      const getSortValue = (match, stadiumsById, teamsById) => {
+        const stadium = stadiumsById.get(match.stadium_id);
+        const homeTeam = teamsById.get(match.home_team_id);
+        const awayTeam = teamsById.get(match.away_team_id);
+        if (currentSort === "group") return match.group_letter || "";
+        if (currentSort === "stadium") return stadium?.name || "";
+        if (currentSort === "home-country") return homeTeam?.name || "";
+        if (currentSort === "away-country") return awayTeam?.name || "";
+        return match.match_number || 0;
+      };
+
+      const compareMatches = (a, b, stadiumsById, teamsById) => {
+        if (currentSort === "match") return (a.match_number || 0) - (b.match_number || 0);
+        const aValue = getSortValue(a, stadiumsById, teamsById);
+        const bValue = getSortValue(b, stadiumsById, teamsById);
+        if (typeof aValue === "number" && typeof bValue === "number") {
+          return aValue - bValue;
+        }
+        const textCompare = String(aValue).localeCompare(String(bValue));
+        if (textCompare !== 0) return textCompare;
+        return (a.match_number || 0) - (b.match_number || 0);
+      };
+
+      const updateFilterButtons = () => {
+        filterButtons.forEach((button) => {
+          const isActive = button.dataset.sort === currentSort;
+          button.classList.toggle("ring-2", isActive);
+          button.classList.toggle("ring-emerald-400", isActive);
+        });
+      };
+
+      const randomizeKnockoutPicks = () => {
+        cachedPicks.knockout = cachedPicks.knockout || {};
+        const groups = buildStandings(cachedMatches, cachedTeams, cachedPicks);
+        const pickRound = (matches) => {
+          matches.forEach((match) => {
+            if (!match?.home || !match?.away) return;
+            const options = [match.home.team.id, match.away.team.id];
+            const pick = options[Math.floor(Math.random() * options.length)];
+            cachedPicks.knockout[match.key] = pick;
+          });
+        };
+
+        let bracket = buildKnockoutBracket(groups, cachedPicks);
+        pickRound(bracket.roundOf32);
+        bracket = buildKnockoutBracket(groups, cachedPicks);
+        pickRound(bracket.roundOf16);
+        bracket = buildKnockoutBracket(groups, cachedPicks);
+        pickRound(bracket.quarterfinals);
+        bracket = buildKnockoutBracket(groups, cachedPicks);
+        pickRound(bracket.semifinals);
+        bracket = buildKnockoutBracket(groups, cachedPicks);
+        pickRound(bracket.thirdPlace);
+        pickRound(bracket.final);
+
+        persistPicks();
+        renderKnockout(cachedMatches, cachedTeams, cachedStadiums, cachedPicks);
+      };
 
       const randomizeGroupPicks = () => {
         const options = ["H", "D", "A"];
@@ -1009,8 +1247,24 @@
           updatePickSummary();
           statusEl.remove();
 
-        const randomizeButton = document.getElementById("randomize-results");
-        randomizeButton?.addEventListener("click", randomizeGroupPicks);
+          const randomizeButton = document.getElementById("randomize-results");
+          randomizeButton?.addEventListener("click", randomizeGroupPicks);
+          randomizeKnockoutButton?.addEventListener("click", randomizeKnockoutPicks);
+          printButton?.addEventListener("click", () => {
+            const currentHash = window.location.hash;
+            window.open(`print-pool.html${currentHash}`, '_blank');
+          });
+
+          filterButtons.forEach((button) => {
+            button.addEventListener("click", () => {
+              const nextSort = button.dataset.sort || "match";
+              if (currentSort === nextSort) return;
+              currentSort = nextSort;
+              updateFilterButtons();
+              renderGroups(cachedMatches, cachedTeams, cachedStadiums);
+            });
+          });
+          updateFilterButtons();
         } catch (error) {
           statusEl.textContent = "Failed to load embedded data.";
           statusEl.classList.add("text-rose-600", "border-rose-200", "bg-rose-50");
