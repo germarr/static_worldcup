@@ -92,7 +92,7 @@
   {
     "country_code": "GB-SCT",
     "created_at": "2026-01-19T22:01:48.018516",
-    "flag_emoji": "https://flagcdn.com/16x12/sco.png",
+    "flag_emoji": "https://flagcdn.com/16x12/gb-sct.png",
     "group_letter": "C",
     "id": 11,
     "name": "Scotland",
@@ -398,7 +398,7 @@
   {
     "country_code": "ENG",
     "created_at": "2026-01-19T22:01:48.034989",
-    "flag_emoji": "https://flagcdn.com/16x12/eng.png",
+    "flag_emoji": "https://flagcdn.com/16x12/gb-eng.png",
     "group_letter": "L",
     "id": 45,
     "name": "England",

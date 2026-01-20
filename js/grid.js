@@ -20,8 +20,10 @@
   const printButton = document.getElementById("print-pool");
   const randomizeKnockoutButton = document.getElementById("randomize-knockout");
   const filterButtons = Array.from(document.querySelectorAll(".filter-button"));
+  const groupFilterButtons = Array.from(document.querySelectorAll(".group-filter-button"));
 
   let currentSort = "match";
+  let currentGroupFilter = "all";
 
   /**
    * Get sort value for a match
@@ -144,6 +146,7 @@
 
     WCP.matches
       .filter((match) => match.round === "group_stage")
+      .filter((match) => currentGroupFilter === "all" || match.group_letter === currentGroupFilter)
       .sort((a, b) => compareMatches(a, b))
       .forEach((match) => {
         groupsEl.appendChild(createMatchRow(match));
@@ -637,6 +640,22 @@
   };
 
   /**
+   * Update group filter button styles
+   */
+  const updateGroupFilterButtons = () => {
+    groupFilterButtons.forEach((button) => {
+      const isActive = button.dataset.group === currentGroupFilter;
+      if (isActive) {
+        button.classList.remove("border-slate-200", "bg-white", "text-slate-600");
+        button.classList.add("border-emerald-500", "bg-emerald-500", "text-white");
+      } else {
+        button.classList.remove("border-emerald-500", "bg-emerald-500", "text-white");
+        button.classList.add("border-slate-200", "bg-white", "text-slate-600");
+      }
+    });
+  };
+
+  /**
    * Initialize the grid view
    */
   const init = async () => {
@@ -667,6 +686,17 @@
         });
       });
       updateFilterButtons();
+
+      groupFilterButtons.forEach((button) => {
+        button.addEventListener("click", () => {
+          const nextGroup = button.dataset.group || "all";
+          if (currentGroupFilter === nextGroup) return;
+          currentGroupFilter = nextGroup;
+          updateGroupFilterButtons();
+          renderGroups();
+        });
+      });
+      updateGroupFilterButtons();
     } catch (error) {
       console.error("Failed to initialize:", error);
       statusEl.textContent = "Failed to load data.";

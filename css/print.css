@@ -257,6 +257,10 @@ body {
   body {
     padding: 0;
   }
+
+  .screen-nav {
+    display: none !important;
+  }
 }
 
 @media screen {

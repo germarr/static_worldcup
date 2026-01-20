@@ -40,6 +40,7 @@
             <a href="index.html" class="hover:text-emerald-600 transition-colors">Card View</a>
             <a href="group-grid.html" class="hover:text-emerald-600 border-b-2 border-emerald-500 text-slate-900">Grid View</a>
             <a href="print-pool.html" class="hover:text-emerald-600 transition-colors">Print Sheet</a>
+            <a href="results.html" class="hover:text-emerald-600 transition-colors">Results</a>
           </nav>
           <div class="inline-flex items-center gap-2 text-xs uppercase tracking-[0.35em] text-slate-500">
             <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
@@ -78,52 +79,39 @@
             <div id="pick-progress" class="h-2 rounded-full bg-emerald-200" style="width: 0%"></div>
           </div>
         </div>
-        <div
-          id="group-filters"
-          class="sticky top-2 z-20 rounded-2xl border border-slate-200 bg-white/80 p-3 text-xs uppercase tracking-widest text-slate-500 shadow-sm backdrop-blur no-print"
-        >
-          <div class="flex flex-wrap items-center gap-2">
-            <span class="text-[10px] font-semibold text-slate-400">Sort by</span>
-            <button
-              class="filter-button rounded-full border border-slate-900 bg-slate-900 px-3 py-1 font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-sm"
-              type="button"
-              data-sort="match"
-            >
-              Date
-            </button>
-            <button
-              class="filter-button rounded-full border border-slate-900 bg-slate-900 px-3 py-1 font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-sm"
-              type="button"
-              data-sort="group"
-            >
-              Group
-            </button>
-            <button
-              class="filter-button rounded-full border border-slate-900 bg-slate-900 px-3 py-1 font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-sm"
-              type="button"
-              data-sort="stadium"
-            >
-              Stadium
-            </button>
-            <button
-              class="filter-button rounded-full border border-slate-900 bg-slate-900 px-3 py-1 font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-sm"
-              type="button"
-              data-sort="home-country"
-            >
-              Home Country
-            </button>
-            <button
-              class="filter-button rounded-full border border-slate-900 bg-slate-900 px-3 py-1 font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-sm"
-              type="button"
-              data-sort="away-country"
-            >
-              Away Country
-            </button>
-          </div>
-        </div>
       </section>
 
-      <section class="mx-auto mt-10 max-w-6xl space-y-4">
+      <div
+        id="group-filters"
+        class="sticky top-0 z-20 mx-auto max-w-6xl rounded-2xl border border-slate-200 bg-white/95 p-3 text-xs uppercase tracking-widest text-slate-500 shadow-md backdrop-blur-sm no-print mt-4"
+      >
+        <div class="flex flex-wrap items-center gap-2">
+          <span class="text-[10px] font-semibold text-slate-400">Sort by</span>
+          <button class="filter-button rounded-full border border-slate-900 bg-slate-900 px-3 py-1 font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-sm" type="button" data-sort="match">Date</button>
+          <button class="filter-button rounded-full border border-slate-900 bg-slate-900 px-3 py-1 font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-sm" type="button" data-sort="group">Group</button>
+          <button class="filter-button rounded-full border border-slate-900 bg-slate-900 px-3 py-1 font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-sm" type="button" data-sort="stadium">Stadium</button>
+          <button class="filter-button rounded-full border border-slate-900 bg-slate-900 px-3 py-1 font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-sm" type="button" data-sort="home-country">Home Country</button>
+          <button class="filter-button rounded-full border border-slate-900 bg-slate-900 px-3 py-1 font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-sm" type="button" data-sort="away-country">Away Country</button>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-slate-100">
+          <span class="text-[10px] font-semibold text-slate-400">Filter by group</span>
+          <button class="group-filter-button rounded-full border border-emerald-500 bg-emerald-500 px-3 py-1 font-semibold text-white transition hover:-translate-y-0.5 hover:shadow-sm" type="button" data-group="all">All</button>
+          <button class="group-filter-button rounded-full border border-slate-200 bg-white px-3 py-1 font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:shadow-sm" type="button" data-group="A">A</button>
+          <button class="group-filter-button rounded-full border border-slate-200 bg-white px-3 py-1 font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:shadow-sm" type="button" data-group="B">B</button>
+          <button class="group-filter-button rounded-full border border-slate-200 bg-white px-3 py-1 font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:shadow-sm" type="button" data-group="C">C</button>
+          <button class="group-filter-button rounded-full border border-slate-200 bg-white px-3 py-1 font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:shadow-sm" type="button" data-group="D">D</button>
+          <button class="group-filter-button rounded-full border border-slate-200 bg-white px-3 py-1 font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:shadow-sm" type="button" data-group="E">E</button>
+          <button class="group-filter-button rounded-full border border-slate-200 bg-white px-3 py-1 font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:shadow-sm" type="button" data-group="F">F</button>
+          <button class="group-filter-button rounded-full border border-slate-200 bg-white px-3 py-1 font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:shadow-sm" type="button" data-group="G">G</button>
+          <button class="group-filter-button rounded-full border border-slate-200 bg-white px-3 py-1 font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:shadow-sm" type="button" data-group="H">H</button>
+          <button class="group-filter-button rounded-full border border-slate-200 bg-white px-3 py-1 font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:shadow-sm" type="button" data-group="I">I</button>
+          <button class="group-filter-button rounded-full border border-slate-200 bg-white px-3 py-1 font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:shadow-sm" type="button" data-group="J">J</button>
+          <button class="group-filter-button rounded-full border border-slate-200 bg-white px-3 py-1 font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:shadow-sm" type="button" data-group="K">K</button>
+          <button class="group-filter-button rounded-full border border-slate-200 bg-white px-3 py-1 font-semibold text-slate-600 transition hover:-translate-y-0.5 hover:shadow-sm" type="button" data-group="L">L</button>
+        </div>
+      </div>
+
+      <section class="mx-auto mt-6 max-w-6xl space-y-4">
         <div class="rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-sm">
           <div class="overflow-x-auto">
             <table class="w-full min-w-[860px] text-left text-xs">
@@ -251,6 +239,20 @@
           </article>
         </div>
       </section>
+
+      <section class="mx-auto mt-12 max-w-6xl">
+        <div class="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-center shadow-sm">
+          <h3 class="text-lg font-semibold text-emerald-900">Ready to see how you did?</h3>
+          <p class="mt-1 text-sm text-emerald-700">Compare your predictions against the actual match results.</p>
+          <a
+            id="view-results-btn"
+            href="results.html"
+            class="mt-4 inline-block rounded-full border border-emerald-600 bg-emerald-600 px-6 py-2 text-sm font-semibold uppercase tracking-widest text-white transition hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-md"
+          >
+            View Results
+          </a>
+        </div>
+      </section>
     </main>
 
     <template id="standings-template">
@@ -304,7 +306,7 @@
     </template>
 
 
-    <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+    <script src="js/compression.js"></script>
     <script src="js/shared.js"></script>
     <script src="js/grid.js"></script>
   </body>

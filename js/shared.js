@@ -69,18 +69,18 @@ const fromBase64Url = (value) => {
 /**
  * Encode picks object to compressed Base64 string
  */
-const encodePicks = (picksData) => {
+const encodePicks = async (picksData) => {
   const payload = JSON.stringify(picksData);
-  const compressed = window.pako.deflate(payload);
+  const compressed = await Compression.compress(payload);
   return toBase64Url(compressed);
 };
 
 /**
  * Decode compressed Base64 string to picks object
  */
-const decodePicks = (encoded) => {
+const decodePicks = async (encoded) => {
   const bytes = fromBase64Url(encoded);
-  const json = window.pako.inflate(bytes, { to: "string" });
+  const json = await Compression.decompress(bytes);
   return JSON.parse(json);
 };
 
@@ -116,13 +116,21 @@ const normalizePicks = (picksData) => {
 /**
  * Load picks from URL hash
  */
-const loadPicksFromHash = () => {
+const loadPicksFromHash = async () => {
   const hash = window.location.hash.replace(/^#/, "");
-  if (!hash.startsWith("p=")) return {};
+  console.log("- loadPicksFromHash: raw hash =", window.location.hash);
+  console.log("- loadPicksFromHash: stripped hash =", hash);
+  if (!hash.startsWith("p=")) {
+    console.log("- loadPicksFromHash: hash does not start with 'p=', returning empty");
+    return {};
+  }
   const encoded = hash.slice(2);
+  console.log("- loadPicksFromHash: encoded data length =", encoded.length);
   if (!encoded) return {};
   try {
-    return decodePicks(encoded);
+    const decoded = await decodePicks(encoded);
+    console.log("- loadPicksFromHash: decoded picks =", decoded);
+    return decoded;
   } catch (error) {
     console.error("Failed to decode picks:", error);
     return {};
@@ -132,7 +140,7 @@ const loadPicksFromHash = () => {
 /**
  * Persist picks to URL hash
  */
-const persistPicks = () => {
+const persistPicks = async () => {
   const baseUrl = `${window.location.pathname}${window.location.search}`;
   const knockoutPicks = picks?.knockout || {};
   const thirdPlaceOrder = picks?.thirdPlaceOrder || [];
@@ -147,7 +155,7 @@ const persistPicks = () => {
     history.replaceState(null, "", baseUrl);
     return;
   }
-  const encoded = encodePicks(picks);
+  const encoded = await encodePicks(picks);
   history.replaceState(null, "", `${baseUrl}#p=${encoded}`);
 };
 
@@ -391,6 +399,9 @@ const getTeamAbbr = (team) => {
 const API_BASE_URL = "http://localhost:8000";
 
 const loadData = async () => {
+  // Initialize compression (pre-load pako if native not supported)
+  await Compression.initCompression();
+
   const [matchesData, teamsData, stadiumsData] = await Promise.all([
     fetchJson(`${API_BASE_URL}/api/matches`),
     fetchJson(`${API_BASE_URL}/api/teams`),
@@ -406,10 +417,33 @@ const loadData = async () => {
   stadiumsById = new Map(stadiums.map((s) => [s.id, s]));
 
   // Load picks from URL hash
-  picks = normalizePicks(loadPicksFromHash());
+  picks = normalizePicks(await loadPicksFromHash());
 
   return { matches, teams, stadiums, picks };
 };
+
+/**
+ * Update navigation links to preserve the URL hash (picks)
+ */
+const updateNavLinks = () => {
+  const hash = window.location.hash;
+  if (!hash) return;
+
+  // Update all navigation links and results buttons to preserve the hash
+  const links = document.querySelectorAll('nav a[href$=".html"], a#view-results-btn');
+  links.forEach((link) => {
+    const href = link.getAttribute("href");
+    if (href && !href.includes("#")) {
+      link.setAttribute("href", href + hash);
+    }
+  });
+};
+
+// Update nav links when hash changes
+window.addEventListener("hashchange", updateNavLinks);
+
+// Update nav links on DOM ready
+document.addEventListener("DOMContentLoaded", updateNavLinks);
 
 // Export for use in page-specific scripts (using global scope)
 window.WorldCupPool = {
@@ -443,4 +477,5 @@ window.WorldCupPool = {
   buildKnockoutBracket,
   createPickControls,
   getTeamAbbr,
+  updateNavLinks,
 };
