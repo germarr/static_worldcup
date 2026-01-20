@@ -30,8 +30,8 @@
           </div>
           <h1 class="text-3xl font-semibold sm:text-5xl">Group Stage Matches</h1>
           <p class="max-w-2xl text-sm text-slate-600 sm:text-base">
-            All group-stage fixtures with scores, kick-off times, and stadiums. Cards are grouped by
-            group letter and ordered by match number.
+            All group-stage fixtures with kick-off times and stadiums. Cards are grouped by group
+            letter and ordered by match number.
           </p>
         </div>
       </div>
@@ -46,7 +46,7 @@
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 class="text-2xl font-semibold">Group Standings</h2>
-            <p class="text-sm text-slate-600">Top two and best third from each group based on current results.</p>
+            <p class="text-sm text-slate-600">Top two and best third from each group based on your picks.</p>
           </div>
           <div class="flex flex-wrap items-center gap-3">
             <div class="text-xs uppercase tracking-[0.35em] text-slate-400">Groups A-L</div>
@@ -55,7 +55,7 @@
               class="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-600 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm"
               type="button"
             >
-              Randomize Results
+              Randomize Picks
             </button>
           </div>
         </div>
@@ -68,6 +68,12 @@
             <span class="h-2 w-2 rounded-full bg-amber-300"></span>
             Third
           </span>
+        </div>
+        <div class="space-y-2">
+          <div id="pick-summary" class="text-xs text-slate-500">Missing picks: 0</div>
+          <div class="h-2 w-full rounded-full bg-slate-100">
+            <div id="pick-progress" class="h-2 rounded-full bg-emerald-200" style="width: 0%"></div>
+          </div>
         </div>
         <div id="standings" class="grid gap-4 md:grid-cols-2 xl:grid-cols-4"></div>
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -102,7 +108,7 @@
         <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 class="text-2xl font-semibold">Knockout Bracket</h2>
-            <p class="text-sm text-slate-600">Single-elimination path from Round of 32 to the Final.</p>
+            <p class="text-sm text-slate-600">Predicted bracket built from your group picks.</p>
           </div>
           <div class="text-xs uppercase tracking-[0.35em] text-slate-400">Round of 32 - Final</div>
         </div>
@@ -134,7 +140,6 @@
             <img data-role="home-flag" class="h-5 w-7 rounded-sm border border-slate-200 object-cover" alt="" />
             <span data-role="home-name" class="font-medium"></span>
           </div>
-          <div data-role="score" class="text-lg font-semibold text-slate-900"></div>
           <div class="flex items-center gap-2">
             <span data-role="away-name" class="font-medium text-right"></span>
             <img data-role="away-flag" class="h-5 w-7 rounded-sm border border-slate-200 object-cover" alt="" />
@@ -144,6 +149,10 @@
           <span data-role="stadium" class="rounded-full bg-slate-100 px-3 py-1"></span>
           <span data-role="location" class="rounded-full bg-slate-100 px-3 py-1"></span>
         </div>
+        <div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+          <span class="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Pick</span>
+          <div data-role="pick-group" class="flex flex-wrap gap-2"></div>
+        </div>
       </article>
     </template>
 
@@ -151,7 +160,7 @@
       <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
         <div class="flex items-center justify-between">
           <h3 class="text-lg font-semibold"></h3>
-          <span class="rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-emerald-700">Top 3</span>
+          <span class="rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-emerald-700">Top 4</span>
         </div>
         <div class="mt-4 overflow-hidden rounded-xl border border-slate-100">
           <table class="w-full text-left text-xs">
@@ -177,19 +186,13 @@
           <span data-role="match-number"></span>
         </div>
         <div class="mt-3 space-y-2 text-sm">
-          <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center gap-2">
-              <img data-role="home-flag" class="h-4 w-6 rounded-sm border border-slate-200 object-cover" alt="" />
-              <span data-role="home-name" class="font-medium"></span>
-            </div>
-            <span data-role="home-score" class="font-semibold text-slate-900"></span>
+          <div class="flex items-center gap-2">
+            <img data-role="home-flag" class="h-4 w-6 rounded-sm border border-slate-200 object-cover" alt="" />
+            <span data-role="home-name" class="font-medium"></span>
           </div>
-          <div class="flex items-center justify-between gap-2">
-            <div class="flex items-center gap-2">
-              <img data-role="away-flag" class="h-4 w-6 rounded-sm border border-slate-200 object-cover" alt="" />
-              <span data-role="away-name" class="font-medium"></span>
-            </div>
-            <span data-role="away-score" class="font-semibold text-slate-900"></span>
+          <div class="flex items-center gap-2">
+            <img data-role="away-flag" class="h-4 w-6 rounded-sm border border-slate-200 object-cover" alt="" />
+            <span data-role="away-name" class="font-medium"></span>
           </div>
         </div>
         <div class="mt-3 text-[11px] text-slate-500">
@@ -208,6 +211,8 @@
 [{"city":"East Rutherford, NJ","country":"USA","id":1,"name":"MetLife Stadium","stadium_id":"New York Stadium"},{"city":"Arlington, TX","country":"USA","id":2,"name":"AT&T Stadium","stadium_id":"Dallas Stadium"},{"city":"Inglewood, CA","country":"USA","id":3,"name":"SoFi Stadium","stadium_id":"Los Angeles Stadium"},{"city":"Miami Gardens, FL","country":"USA","id":4,"name":"Hard Rock Stadium","stadium_id":"Miami Stadium"},{"city":"Atlanta, GA","country":"USA","id":5,"name":"Mercedes-Benz Stadium","stadium_id":"Atlanta Stadium"},{"city":"Santa Clara, CA","country":"USA","id":6,"name":"Levi's Stadium","stadium_id":"San Francisco Stadium"},{"city":"Houston, TX","country":"USA","id":7,"name":"NRG Stadium","stadium_id":"Houston Stadium"},{"city":"Philadelphia, PA","country":"USA","id":8,"name":"Lincoln Financial Field","stadium_id":"Philadelphia Stadium"},{"city":"Foxborough, MA","country":"USA","id":9,"name":"Gillette Stadium","stadium_id":"Boston Stadium"},{"city":"Kansas City, MO","country":"USA","id":10,"name":"Arrowhead Stadium","stadium_id":"Kansas City Stadium"},{"city":"Seattle, WA","country":"USA","id":11,"name":"Lumen Field","stadium_id":"Seattle Stadium"},{"city":"Mexico City","country":"Mexico","id":12,"name":"Estadio Azteca","stadium_id":"Mexico City Stadium"},{"city":"Guadalajara","country":"Mexico","id":13,"name":"Estadio Akron","stadium_id":"Guadlajara Stadium"},{"city":"Monterrey","country":"Mexico","id":14,"name":"Estadio BBVA","stadium_id":"Monterrey Stadium"},{"city":"Toronto","country":"Canada","id":15,"name":"BMO Field","stadium_id":"Toronto Stadium"},{"city":"Vancouver","country":"Canada","id":16,"name":"BC Place","stadium_id":"BC Place Vancouver"}]
 </script>
 
+    <script src="https://cdn.jsdelivr.net/npm/pako@2.1.0/dist/pako.min.js"></script>
+
     <script>
       const statusEl = document.getElementById("status");
       const groupsEl = document.getElementById("groups");
@@ -217,6 +222,8 @@
       const knockoutTemplate = document.getElementById("knockout-template");
       const standingsEl = document.getElementById("standings");
       const knockoutEl = document.getElementById("knockout");
+      const pickSummaryEl = document.getElementById("pick-summary");
+      const pickProgressEl = document.getElementById("pick-progress");
 
       const parseJson = (id) => {
         const raw = document.getElementById(id)?.textContent || "[]";
@@ -233,6 +240,121 @@
         }).format(date);
       };
 
+      const toBase64Url = (bytes) => {
+        let binary = "";
+        bytes.forEach((byte) => {
+          binary += String.fromCharCode(byte);
+        });
+        return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+      };
+
+      const fromBase64Url = (value) => {
+        const padded = value.padEnd(value.length + ((4 - (value.length % 4)) % 4), "=");
+        const base64 = padded.replace(/-/g, "+").replace(/_/g, "/");
+        const binary = atob(base64);
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i += 1) {
+          bytes[i] = binary.charCodeAt(i);
+        }
+        return bytes;
+      };
+
+      const encodePicks = (picks) => {
+        const payload = JSON.stringify(picks);
+        const compressed = window.pako.deflate(payload);
+        return toBase64Url(compressed);
+      };
+
+      const decodePicks = (encoded) => {
+        const bytes = fromBase64Url(encoded);
+        const json = window.pako.inflate(bytes, { to: "string" });
+        return JSON.parse(json);
+      };
+
+      const getPickScore = (pick) => {
+        if (pick === "H") return { home: 1, away: 0 };
+        if (pick === "A") return { home: 0, away: 1 };
+        if (pick === "D") return { home: 0, away: 0 };
+        return null;
+      };
+
+      const updatePickSummary = () => {
+        if (!pickSummaryEl || !pickProgressEl) return;
+        const groupMatches = cachedMatches.filter((match) => match.round === "group_stage");
+        const total = groupMatches.length;
+        const picked = groupMatches.filter((match) => cachedPicks[match.id]).length;
+        const missing = Math.max(total - picked, 0);
+        const percent = total === 0 ? 0 : Math.round((picked / total) * 100);
+
+        pickSummaryEl.textContent = `Missing picks: ${missing} of ${total}`;
+        pickProgressEl.style.width = `${percent}%`;
+      };
+
+      const persistPicks = () => {
+        const baseUrl = `${window.location.pathname}${window.location.search}`;
+        const hasPicks = Object.keys(cachedPicks).length > 0;
+        if (!hasPicks) {
+          history.replaceState(null, "", baseUrl);
+          return;
+        }
+        const encoded = encodePicks(cachedPicks);
+        history.replaceState(null, "", `${baseUrl}#p=${encoded}`);
+      };
+
+      const loadPicksFromHash = () => {
+        const hash = window.location.hash.replace(/^#/, "");
+        if (!hash.startsWith("p=")) return {};
+        const encoded = hash.slice(2);
+        if (!encoded) return {};
+        try {
+          return decodePicks(encoded);
+        } catch (error) {
+          return {};
+        }
+      };
+
+      const createPickControls = (match, pickGroupEl) => {
+        const options = [
+          { value: "H", label: "Home" },
+          { value: "D", label: "Draw" },
+          { value: "A", label: "Away" },
+        ];
+
+        options.forEach((option) => {
+          const label = document.createElement("label");
+          label.className = "cursor-pointer";
+
+          const input = document.createElement("input");
+          input.type = "radio";
+          input.name = `pick-${match.id}`;
+          input.value = option.value;
+          input.className = "peer sr-only";
+          if (cachedPicks[match.id] === option.value) {
+            input.checked = true;
+          }
+
+          input.addEventListener("change", () => {
+            if (input.checked) {
+              cachedPicks[match.id] = option.value;
+              persistPicks();
+              updatePickSummary();
+              renderStandings(cachedMatches, cachedTeams, cachedPicks);
+              renderGroups(cachedMatches, cachedTeams, cachedStadiums);
+              renderKnockout(cachedMatches, cachedTeams);
+            }
+          });
+
+          const pill = document.createElement("span");
+          pill.className =
+            "inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500 transition peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white";
+          pill.textContent = option.label;
+
+          label.appendChild(input);
+          label.appendChild(pill);
+          pickGroupEl.appendChild(label);
+        });
+      };
+
       const createCard = (match, teamsById, stadiumsById) => {
         const card = cardTemplate.content.cloneNode(true);
         const statusEl = card.querySelector('[data-role="status"]');
@@ -242,11 +364,12 @@
         const homeNameEl = card.querySelector('[data-role="home-name"]');
         const awayFlagEl = card.querySelector('[data-role="away-flag"]');
         const awayNameEl = card.querySelector('[data-role="away-name"]');
-        const scoreEl = card.querySelector('[data-role="score"]');
         const stadiumEl = card.querySelector('[data-role="stadium"]');
         const locationEl = card.querySelector('[data-role="location"]');
+        const pickGroupEl = card.querySelector('[data-role="pick-group"]');
 
-        statusEl.textContent = match.status;
+        const currentPick = cachedPicks[match.id];
+        statusEl.textContent = currentPick ? "picked" : "open";
         matchNumberEl.textContent = `Match #${match.match_number}`;
         dateEl.textContent = formatDate(match.scheduled_datetime);
 
@@ -261,16 +384,18 @@
         awayFlagEl.alt = `${awayTeam.name} flag`;
         awayNameEl.textContent = awayTeam.name;
 
-        scoreEl.textContent = `${match.actual_home_score} - ${match.actual_away_score}`;
-
         const stadium = stadiumsById.get(match.stadium_id);
         stadiumEl.textContent = stadium ? stadium.name : "Stadium TBD";
         locationEl.textContent = stadium ? `${stadium.city}, ${stadium.country}` : "Location TBD";
 
+        if (pickGroupEl && match.round === "group_stage") {
+          createPickControls(match, pickGroupEl);
+        }
+
         return card;
       };
 
-      const buildStandings = (matches, teams) => {
+      const buildStandings = (matches, teams, picks) => {
         const groupMatches = matches.filter((match) => match.round === "group_stage");
         const groups = {};
 
@@ -293,17 +418,20 @@
           const home = groups[group][match.home_team_id];
           const away = groups[group][match.away_team_id];
           if (!home || !away) return;
+          const pick = picks[match.id];
+          const score = getPickScore(pick);
+          if (!score) return;
 
           home.played += 1;
           away.played += 1;
-          home.gf += match.actual_home_score;
-          home.ga += match.actual_away_score;
-          away.gf += match.actual_away_score;
-          away.ga += match.actual_home_score;
+          home.gf += score.home;
+          home.ga += score.away;
+          away.gf += score.away;
+          away.ga += score.home;
 
-          if (match.actual_home_score > match.actual_away_score) {
+          if (score.home > score.away) {
             home.points += 3;
-          } else if (match.actual_home_score < match.actual_away_score) {
+          } else if (score.home < score.away) {
             away.points += 3;
           } else {
             home.points += 1;
@@ -365,8 +493,8 @@
         });
       };
 
-      const renderStandings = (matches, teams) => {
-        const groups = buildStandings(matches, teams);
+      const renderStandings = (matches, teams, picks) => {
+        const groups = buildStandings(matches, teams, picks);
         const groupLetters = Object.keys(groups).sort();
         standingsEl.innerHTML = "";
 
@@ -436,61 +564,106 @@
         });
       };
 
-      const renderKnockout = (matches, teams, stadiums) => {
-        const teamsById = new Map(teams.map((team) => [team.id, team]));
-        const stadiumsById = new Map(stadiums.map((stadium) => [stadium.id, stadium]));
-        const roundOrder = [
-          "knockout_stage_roundof32",
-          "knockout_stage_roundof16",
-          "knockout_stage_quarterfinal",
-          "knockout_stage_semifinal",
-        ];
-        const roundLabels = {
-          knockout_stage_roundof32: "Round of 32",
-          knockout_stage_roundof16: "Round of 16",
-          knockout_stage_quarterfinal: "Quarterfinals",
-          knockout_stage_semifinal: "Semifinals",
-          knockout_stage_thirdplace: "Third Place",
-          knockout_stage_final: "Final",
+      const buildKnockoutBracket = (groups) => {
+        const groupLetters = Object.keys(groups).sort();
+        const groupRows = groupLetters.map((letter) => ({
+          letter,
+          rows: getSortedRows(groups[letter]),
+        }));
+
+        const topThirds = groupRows
+          .map((group) => ({ group: group.letter, ...group.rows[2] }))
+          .sort((a, b) => {
+            if (b.points !== a.points) return b.points - a.points;
+            if (b.gd !== a.gd) return b.gd - a.gd;
+            if (b.gf !== a.gf) return b.gf - a.gf;
+            return a.team.name.localeCompare(b.team.name);
+          })
+          .slice(0, 8);
+
+        const firstSeeds = groupRows.map((group) => ({ seed: `${group.letter}1`, ...group.rows[0] }));
+        const secondSeeds = groupRows.map((group) => ({ seed: `${group.letter}2`, ...group.rows[1] }));
+        const thirdSeeds = topThirds.map((row) => ({ seed: `${row.group}3`, ...row }));
+        const qualified = [...firstSeeds, ...secondSeeds, ...thirdSeeds];
+
+        const pickWinner = (a, b) => {
+          if (!a) return b;
+          if (!b) return a;
+          if (a.points !== b.points) return a.points > b.points ? a : b;
+          if (a.gd !== b.gd) return a.gd > b.gd ? a : b;
+          if (a.gf !== b.gf) return a.gf > b.gf ? a : b;
+          return a.team.name.localeCompare(b.team.name) <= 0 ? a : b;
         };
 
-        const byRound = matches
-          .filter((match) => match.round && match.round.startsWith("knockout_stage"))
-          .reduce((acc, match) => {
-            acc[match.round] = acc[match.round] || [];
-            acc[match.round].push(match);
-            return acc;
-          }, {});
+        const buildRound = (teams) => {
+          const matches = [];
+          const winners = [];
+          for (let i = 0; i < teams.length; i += 2) {
+            const home = teams[i] || null;
+            const away = teams[i + 1] || null;
+            const winner = pickWinner(home, away);
+            matches.push({ home, away, winner });
+            winners.push(winner);
+          }
+          return { matches, winners };
+        };
+
+        const roundOf32 = buildRound(qualified);
+        const roundOf16 = buildRound(roundOf32.winners);
+        const quarterfinals = buildRound(roundOf16.winners);
+        const semifinals = buildRound(quarterfinals.winners);
+        const finalMatch = buildRound(semifinals.winners);
+        const thirdPlaceTeams = semifinals.matches.map((match) =>
+          match.home === match.winner ? match.away : match.home
+        );
+        const thirdPlace = buildRound(thirdPlaceTeams);
+
+        return {
+          roundOf32: roundOf32.matches,
+          roundOf16: roundOf16.matches,
+          quarterfinals: quarterfinals.matches,
+          semifinals: semifinals.matches,
+          final: finalMatch.matches,
+          thirdPlace: thirdPlace.matches,
+        };
+      };
+
+      const renderKnockout = (matches, teams) => {
+        const groups = buildStandings(matches, teams, cachedPicks);
+        const bracket = buildKnockoutBracket(groups);
+
+        const columns = [
+          { title: "Round of 32", matches: bracket.roundOf32 },
+          { title: "Round of 16", matches: bracket.roundOf16 },
+          { title: "Quarterfinals", matches: bracket.quarterfinals },
+          { title: "Semifinals", matches: bracket.semifinals },
+        ];
 
         knockoutEl.innerHTML = "";
 
-        roundOrder.forEach((roundKey) => {
+        columns.forEach((columnData) => {
           const column = document.createElement("div");
           column.className = "space-y-3";
           const header = document.createElement("div");
           header.className = "rounded-full bg-slate-100 px-3 py-1 text-[11px] uppercase tracking-widest text-slate-500";
-          header.textContent = roundLabels[roundKey];
+          header.textContent = columnData.title;
           column.appendChild(header);
 
-          const roundMatches = (byRound[roundKey] || []).sort((a, b) => a.match_number - b.match_number);
-          roundMatches.forEach((match) => {
+          columnData.matches.forEach((match, index) => {
             const card = knockoutTemplate.content.cloneNode(true);
-            card.querySelector('[data-role="round"]').textContent = roundLabels[match.round];
-            card.querySelector('[data-role="match-number"]').textContent = `#${match.match_number}`;
+            card.querySelector('[data-role="round"]').textContent = columnData.title;
+            card.querySelector('[data-role="match-number"]').textContent = `#${index + 1}`;
 
-            const homeTeam = teamsById.get(match.home_team_id) || { name: "TBD", flag_emoji: "" };
-            const awayTeam = teamsById.get(match.away_team_id) || { name: "TBD", flag_emoji: "" };
+            const homeTeam = match.home ? match.home.team : { name: "TBD", flag_emoji: "" };
+            const awayTeam = match.away ? match.away.team : { name: "TBD", flag_emoji: "" };
             card.querySelector('[data-role="home-flag"]').src = homeTeam.flag_emoji || "";
             card.querySelector('[data-role="home-flag"]').alt = `${homeTeam.name} flag`;
             card.querySelector('[data-role="home-name"]').textContent = homeTeam.name;
             card.querySelector('[data-role="away-flag"]').src = awayTeam.flag_emoji || "";
             card.querySelector('[data-role="away-flag"]').alt = `${awayTeam.name} flag`;
             card.querySelector('[data-role="away-name"]').textContent = awayTeam.name;
-            card.querySelector('[data-role="home-score"]').textContent = match.actual_home_score;
-            card.querySelector('[data-role="away-score"]').textContent = match.actual_away_score;
 
-            const stadium = stadiumsById.get(match.stadium_id);
-            card.querySelector('[data-role="stadium"]').textContent = stadium ? stadium.name : "Stadium TBD";
+            card.querySelector('[data-role="stadium"]').textContent = "Stadium TBD";
 
             column.appendChild(card);
           });
@@ -505,26 +678,25 @@
         finalHeader.textContent = "Finals";
         finalColumn.appendChild(finalHeader);
 
-        ["knockout_stage_thirdplace", "knockout_stage_final"].forEach((roundKey) => {
-          const roundMatches = (byRound[roundKey] || []).sort((a, b) => a.match_number - b.match_number);
-          roundMatches.forEach((match) => {
+        [
+          { title: "Third Place", matches: bracket.thirdPlace },
+          { title: "Final", matches: bracket.final },
+        ].forEach((columnData) => {
+          columnData.matches.forEach((match, index) => {
             const card = knockoutTemplate.content.cloneNode(true);
-            card.querySelector('[data-role="round"]').textContent = roundLabels[match.round];
-            card.querySelector('[data-role="match-number"]').textContent = `#${match.match_number}`;
+            card.querySelector('[data-role="round"]').textContent = columnData.title;
+            card.querySelector('[data-role="match-number"]').textContent = `#${index + 1}`;
 
-            const homeTeam = teamsById.get(match.home_team_id) || { name: "TBD", flag_emoji: "" };
-            const awayTeam = teamsById.get(match.away_team_id) || { name: "TBD", flag_emoji: "" };
+            const homeTeam = match.home ? match.home.team : { name: "TBD", flag_emoji: "" };
+            const awayTeam = match.away ? match.away.team : { name: "TBD", flag_emoji: "" };
             card.querySelector('[data-role="home-flag"]').src = homeTeam.flag_emoji || "";
             card.querySelector('[data-role="home-flag"]').alt = `${homeTeam.name} flag`;
             card.querySelector('[data-role="home-name"]').textContent = homeTeam.name;
             card.querySelector('[data-role="away-flag"]').src = awayTeam.flag_emoji || "";
             card.querySelector('[data-role="away-flag"]').alt = `${awayTeam.name} flag`;
             card.querySelector('[data-role="away-name"]').textContent = awayTeam.name;
-            card.querySelector('[data-role="home-score"]').textContent = match.actual_home_score;
-            card.querySelector('[data-role="away-score"]').textContent = match.actual_away_score;
 
-            const stadium = stadiumsById.get(match.stadium_id);
-            card.querySelector('[data-role="stadium"]').textContent = stadium ? stadium.name : "Stadium TBD";
+            card.querySelector('[data-role="stadium"]').textContent = "Stadium TBD";
 
             finalColumn.appendChild(card);
           });
@@ -536,23 +708,21 @@
       let cachedMatches = [];
       let cachedTeams = [];
       let cachedStadiums = [];
+      let cachedPicks = {};
 
-      const randomizeGroupScores = () => {
-        cachedMatches = cachedMatches.map((match) => {
-          if (match.round !== "group_stage") {
-            return match;
-          }
-          return {
-            ...match,
-            actual_home_score: Math.floor(Math.random() * 5),
-            actual_away_score: Math.floor(Math.random() * 5),
-            status: "simulated",
-          };
-        });
+      const randomizeGroupPicks = () => {
+        const options = ["H", "D", "A"];
+        cachedMatches
+          .filter((match) => match.round === "group_stage")
+          .forEach((match) => {
+            cachedPicks[match.id] = options[Math.floor(Math.random() * options.length)];
+          });
 
-        renderStandings(cachedMatches, cachedTeams);
+        persistPicks();
+        renderStandings(cachedMatches, cachedTeams, cachedPicks);
         renderGroups(cachedMatches, cachedTeams, cachedStadiums);
-        renderKnockout(cachedMatches, cachedTeams, cachedStadiums);
+        renderKnockout(cachedMatches, cachedTeams);
+        updatePickSummary();
       };
 
       const init = () => {
@@ -560,14 +730,16 @@
           cachedMatches = parseJson("matches-data");
           cachedTeams = parseJson("teams-data");
           cachedStadiums = parseJson("stadiums-data");
+          cachedPicks = loadPicksFromHash();
 
-          renderStandings(cachedMatches, cachedTeams);
+          renderStandings(cachedMatches, cachedTeams, cachedPicks);
           renderGroups(cachedMatches, cachedTeams, cachedStadiums);
-          renderKnockout(cachedMatches, cachedTeams, cachedStadiums);
+          renderKnockout(cachedMatches, cachedTeams);
+          updatePickSummary();
           statusEl.remove();
 
-          const randomizeButton = document.getElementById("randomize-results");
-          randomizeButton?.addEventListener("click", randomizeGroupScores);
+        const randomizeButton = document.getElementById("randomize-results");
+        randomizeButton?.addEventListener("click", randomizeGroupPicks);
         } catch (error) {
           statusEl.textContent = "Failed to load embedded data.";
           statusEl.classList.add("text-rose-600", "border-rose-200", "bg-rose-50");
