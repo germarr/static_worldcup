@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- SEO & Meta Tags -->
+    <title>Prediction Methodology - World Cup 2026 Match Predictions</title>
+    <meta name="description" content="Mathematical methodology behind World Cup 2026 match predictions using Kalshi prediction market data." />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- KaTeX for math rendering -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
+    <link rel="stylesheet" href="css/styles.css" />
+    <style>
+      .formula-box {
+        background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+        border: 1px solid #e2e8f0;
+        border-radius: 1rem;
+        padding: 1.5rem;
+        margin: 1.5rem 0;
+      }
+      .formula-box .katex { font-size: 1.1em; }
+      .section-number {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 2rem;
+        height: 2rem;
+        background: #0f172a;
+        color: white;
+        border-radius: 50%;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-right: 0.75rem;
+      }
+    </style>
+  </head>
+  <body class="min-h-screen bg-white text-slate-900">
+    <!-- Header -->
+    <header class="border-b border-slate-200 px-6 py-8 sm:px-10">
+      <div class="mx-auto max-w-4xl">
+        <a href="bracket-predictions.html" class="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-emerald-600 transition-colors mb-6">
+          <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+          </svg>
+          Back to Predictions
+        </a>
+        <div class="flex flex-col gap-2">
+          <div class="inline-flex items-center gap-2 text-xs uppercase tracking-[0.35em] text-slate-500">
+            <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+            Technical Documentation
+          </div>
+          <h1 class="text-3xl font-semibold sm:text-4xl">Prediction Methodology</h1>
+          <p class="text-slate-600">
+            Mathematical framework for World Cup 2026 match outcome predictions
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <!-- Content -->
+    <main class="px-6 py-12 sm:px-10">
+      <article class="mx-auto max-w-4xl prose-slate">
+
+        <!-- Abstract -->
+        <section class="mb-12 rounded-2xl border border-slate-200 bg-slate-50/50 p-6">
+          <h2 class="text-lg font-semibold text-slate-900 mb-3">Abstract</h2>
+          <p class="text-sm text-slate-600 leading-relaxed">
+            This document describes the mathematical methodology used to predict match outcomes for the FIFA World Cup 2026.
+            Our approach leverages prediction market data from Kalshi, specifically each team's probability of winning the
+            tournament, to derive head-to-head match probabilities. We employ a logistic transformation to convert relative
+            team strengths into win/draw/loss probabilities for group stage matches, and a simplified proportional model
+            for knockout rounds where draws are not permitted.
+          </p>
+        </section>
+
+        <!-- Section 1: Data Source -->
+        <section class="mb-10">
+          <h2 class="flex items-center text-xl font-semibold mb-4">
+            <span class="section-number">1</span>
+            Data Source
+          </h2>
+          <p class="text-slate-600 mb-4">
+            Our predictions are derived from <strong>Kalshi prediction market data</strong>, which provides the probability
+            that each team will win the World Cup tournament. These probabilities reflect the aggregated beliefs of market
+            participants and are continuously updated based on trading activity.
+          </p>
+          <p class="text-slate-600 mb-4">
+            Let \(P_{\text{WC}}(T)\) denote the probability that team \(T\) wins the World Cup, expressed as a percentage.
+          </p>
+          <div class="rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm">
+            <strong class="text-amber-800">Missing Data Fallback:</strong>
+            <span class="text-amber-700">
+              Teams without Kalshi market data are assigned a baseline probability of \(P_{\text{WC}} = 0.1\%\),
+              representing minimal tournament win chances. These teams are marked with an asterisk (*) in the interface.
+            </span>
+          </div>
+        </section>
+
+        <!-- Section 2: Group Stage Match Probability -->
+        <section class="mb-10">
+          <h2 class="flex items-center text-xl font-semibold mb-4">
+            <span class="section-number">2</span>
+            Group Stage Match Probability
+          </h2>
+          <p class="text-slate-600 mb-4">
+            For group stage matches between Team A (home) and Team B (away), we calculate win, draw, and loss
+            probabilities using a logistic transformation of the teams' relative strengths.
+          </p>
+
+          <h3 class="text-lg font-medium mt-6 mb-3">2.1 Log Ratio (Relative Strength)</h3>
+          <p class="text-slate-600 mb-4">
+            We first compute the log ratio of the teams' World Cup win probabilities:
+          </p>
+          <div class="formula-box text-center">
+            $$R = \ln\left(\frac{P_{\text{WC}}(A)}{P_{\text{WC}}(B)}\right)$$
+          </div>
+          <p class="text-slate-600 mb-4">
+            This ratio is positive when Team A is favored, negative when Team B is favored, and zero when teams are equally matched.
+          </p>
+
+          <h3 class="text-lg font-medium mt-6 mb-3">2.2 Raw Win Probability (Logistic Function)</h3>
+          <p class="text-slate-600 mb-4">
+            The log ratio is transformed into a raw probability using the logistic (sigmoid) function:
+          </p>
+          <div class="formula-box text-center">
+            $$P_{\text{raw}}(A) = \frac{1}{1 + e^{-k \cdot R}}$$
+          </div>
+          <p class="text-slate-600 mb-4">
+            Where \(k = 0.7\) is a steepness parameter that controls how quickly probability changes with the log ratio.
+            This value was calibrated to produce reasonable probability spreads for typical team strength differences.
+          </p>
+
+          <h3 class="text-lg font-medium mt-6 mb-3">2.3 Competitiveness Factor</h3>
+          <p class="text-slate-600 mb-4">
+            Draws are more likely in closely matched games. We define a competitiveness factor:
+          </p>
+          <div class="formula-box text-center">
+            $$C = 1 - 2 \cdot \left| P_{\text{raw}}(A) - 0.5 \right|$$
+          </div>
+          <p class="text-slate-600 mb-4">
+            This yields \(C = 1\) for perfectly matched teams (\(P_{\text{raw}} = 0.5\)) and \(C \to 0\) for heavily mismatched teams.
+          </p>
+
+          <h3 class="text-lg font-medium mt-6 mb-3">2.4 Draw Probability</h3>
+          <p class="text-slate-600 mb-4">
+            The draw probability is scaled by competitiveness, with a base rate of 26% (approximate historical average for international football):
+          </p>
+          <div class="formula-box text-center">
+            $$P(\text{Draw}) = 0.26 \cdot C$$
+          </div>
+
+          <h3 class="text-lg font-medium mt-6 mb-3">2.5 Final Win Probabilities</h3>
+          <p class="text-slate-600 mb-4">
+            The remaining probability mass (after accounting for draws) is distributed proportionally:
+          </p>
+          <div class="formula-box">
+            <div class="text-center space-y-3">
+              $$P(A \text{ wins}) = P_{\text{raw}}(A) \cdot (1 - P(\text{Draw}))$$
+              $$P(B \text{ wins}) = (1 - P_{\text{raw}}(A)) \cdot (1 - P(\text{Draw}))$$
+            </div>
+          </div>
+          <p class="text-slate-600 mt-4">
+            Note that these probabilities always sum to 1:
+            \(P(A \text{ wins}) + P(\text{Draw}) + P(B \text{ wins}) = 1\)
+          </p>
+        </section>
+
+        <!-- Section 3: Expected Points -->
+        <section class="mb-10">
+          <h2 class="flex items-center text-xl font-semibold mb-4">
+            <span class="section-number">3</span>
+            Expected Points Calculation
+          </h2>
+          <p class="text-slate-600 mb-4">
+            For group standings prediction, we calculate the expected points for each team across their three group stage matches.
+          </p>
+
+          <h3 class="text-lg font-medium mt-6 mb-3">3.1 Points per Match</h3>
+          <p class="text-slate-600 mb-4">
+            Using standard FIFA point allocation (3 for win, 1 for draw, 0 for loss), the expected points for Team A in a single match is:
+          </p>
+          <div class="formula-box text-center">
+            $$E[\text{Points}_A] = 3 \cdot P(A \text{ wins}) + 1 \cdot P(\text{Draw}) + 0 \cdot P(A \text{ loses})$$
+          </div>
+          <p class="text-slate-600 mb-2">Simplified:</p>
+          <div class="formula-box text-center">
+            $$E[\text{Points}_A] = 3 \cdot P(A \text{ wins}) + P(\text{Draw})$$
+          </div>
+
+          <h3 class="text-lg font-medium mt-6 mb-3">3.2 Total Expected Points</h3>
+          <p class="text-slate-600 mb-4">
+            A team's total expected points is the sum across all three group matches:
+          </p>
+          <div class="formula-box text-center">
+            $$E[\text{Total Points}] = \sum_{i=1}^{3} E[\text{Points}]_{\text{match } i}$$
+          </div>
+          <p class="text-slate-600 mt-4">
+            Teams are ranked within each group by expected points. Ties are broken alphabetically by team name.
+          </p>
+        </section>
+
+        <!-- Section 4: Knockout Stage -->
+        <section class="mb-10">
+          <h2 class="flex items-center text-xl font-semibold mb-4">
+            <span class="section-number">4</span>
+            Knockout Stage Probability
+          </h2>
+          <p class="text-slate-600 mb-4">
+            In knockout rounds, matches cannot end in a draw (extra time and penalties determine a winner).
+            We use a simplified proportional model that redistributes what would be draw probability.
+          </p>
+
+          <h3 class="text-lg font-medium mt-6 mb-3">4.1 Win Probability (No Draws)</h3>
+          <p class="text-slate-600 mb-4">
+            For a knockout match between Team A and Team B:
+          </p>
+          <div class="formula-box">
+            <div class="text-center space-y-3">
+              $$P(A \text{ advances}) = \frac{P_{\text{WC}}(A)}{P_{\text{WC}}(A) + P_{\text{WC}}(B)}$$
+              $$P(B \text{ advances}) = \frac{P_{\text{WC}}(B)}{P_{\text{WC}}(A) + P_{\text{WC}}(B)}$$
+            </div>
+          </div>
+          <p class="text-slate-600 mt-4">
+            This approach directly uses the World Cup win probabilities as a proxy for overall team strength,
+            normalizing them to sum to 100% for each matchup.
+          </p>
+
+          <h3 class="text-lg font-medium mt-6 mb-3">4.2 Bracket Progression</h3>
+          <p class="text-slate-600 mb-4">
+            The predicted winner of each match advances to the next round. This creates a deterministic bracket
+            where the team with the higher probability always advances. The bracket progresses through:
+          </p>
+          <ul class="list-disc list-inside text-slate-600 space-y-1 ml-4">
+            <li>Round of 32 (32 teams &rarr; 16 winners)</li>
+            <li>Round of 16 (16 teams &rarr; 8 winners)</li>
+            <li>Quarterfinals (8 teams &rarr; 4 winners)</li>
+            <li>Semifinals (4 teams &rarr; 2 winners + 2 for 3rd place)</li>
+            <li>Third Place Match (2 semifinal losers)</li>
+            <li>Final (2 semifinal winners)</li>
+          </ul>
+        </section>
+
+        <!-- Section 5: Third Place Qualification -->
+        <section class="mb-10">
+          <h2 class="flex items-center text-xl font-semibold mb-4">
+            <span class="section-number">5</span>
+            Third Place Qualification
+          </h2>
+          <p class="text-slate-600 mb-4">
+            In the 2026 World Cup format with 48 teams in 12 groups, the top 8 third-place teams advance to the knockout stage.
+          </p>
+
+          <h3 class="text-lg font-medium mt-6 mb-3">5.1 Ranking Criteria</h3>
+          <p class="text-slate-600 mb-4">
+            All 12 third-place teams are ranked by:
+          </p>
+          <ol class="list-decimal list-inside text-slate-600 space-y-1 ml-4">
+            <li><strong>Expected Points</strong> (descending)</li>
+            <li><strong>Alphabetical by team name</strong> (tiebreaker)</li>
+          </ol>
+          <p class="text-slate-600 mt-4">
+            The top 8 teams in this ranking advance to the Round of 32.
+          </p>
+        </section>
+
+        <!-- Section 6: Edge Cases -->
+        <section class="mb-10">
+          <h2 class="flex items-center text-xl font-semibold mb-4">
+            <span class="section-number">6</span>
+            Edge Cases
+          </h2>
+
+          <div class="space-y-4">
+            <div class="rounded-xl border border-slate-200 p-4">
+              <h4 class="font-medium text-slate-900 mb-2">Both teams have zero probability</h4>
+              <p class="text-sm text-slate-600">
+                If both teams lack market data, group stage matches return \(P(A) = P(B) = 33\%\), \(P(\text{Draw}) = 34\%\).
+                Knockout matches return \(P(A) = P(B) = 50\%\).
+              </p>
+            </div>
+
+            <div class="rounded-xl border border-slate-200 p-4">
+              <h4 class="font-medium text-slate-900 mb-2">One team has zero probability</h4>
+              <p class="text-sm text-slate-600">
+                The team with data is heavily favored: \(P(\text{favored wins}) = 65\%\), \(P(\text{Draw}) = 20\%\),
+                \(P(\text{underdog wins}) = 15\%\).
+              </p>
+            </div>
+
+            <div class="rounded-xl border border-slate-200 p-4">
+              <h4 class="font-medium text-slate-900 mb-2">Equal probabilities</h4>
+              <p class="text-sm text-slate-600">
+                When \(P_{\text{WC}}(A) = P_{\text{WC}}(B)\), the log ratio \(R = 0\), yielding \(P_{\text{raw}} = 0.5\),
+                maximum competitiveness, and the highest draw probability.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Section 7: Limitations -->
+        <section class="mb-10">
+          <h2 class="flex items-center text-xl font-semibold mb-4">
+            <span class="section-number">7</span>
+            Limitations
+          </h2>
+          <ul class="list-disc list-inside text-slate-600 space-y-2 ml-4">
+            <li>
+              <strong>No home advantage:</strong> The model does not account for home field advantage,
+              which may be significant for host nations (USA, Mexico, Canada).
+            </li>
+            <li>
+              <strong>Static probabilities:</strong> Predictions use a snapshot of market data and do not
+              update dynamically as the tournament progresses.
+            </li>
+            <li>
+              <strong>No head-to-head history:</strong> Historical matchup data between teams is not considered.
+            </li>
+            <li>
+              <strong>Simplified knockout model:</strong> The knockout probability model does not account for
+              the different dynamics of extra time and penalty shootouts.
+            </li>
+            <li>
+              <strong>Market efficiency assumption:</strong> We assume prediction market prices accurately
+              reflect true probabilities, which may not always hold.
+            </li>
+          </ul>
+        </section>
+
+        <!-- References -->
+        <section class="mt-12 pt-8 border-t border-slate-200">
+          <h2 class="text-lg font-semibold mb-4">References</h2>
+          <ul class="text-sm text-slate-600 space-y-2">
+            <li>
+              <strong>Kalshi Prediction Markets:</strong> Real-time prediction market data for World Cup outcomes.
+            </li>
+            <li>
+              <strong>FIFA World Cup 2026 Format:</strong> 48 teams, 12 groups of 4, top 2 + best 8 third-place teams advance.
+            </li>
+            <li>
+              <strong>Logistic Function:</strong> Standard sigmoid transformation for probability mapping.
+            </li>
+          </ul>
+        </section>
+
+      </article>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-200 px-6 py-8 sm:px-10">
+      <div class="mx-auto max-w-4xl text-center text-sm text-slate-500">
+        <p>World Cup 2026 Prediction System &mdash; Methodology Documentation</p>
+      </div>
+    </footer>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function() {
+        renderMathInElement(document.body, {
+          delimiters: [
+            {left: '$$', right: '$$', display: true},
+            {left: '\\[', right: '\\]', display: true},
+            {left: '$', right: '$', display: false},
+            {left: '\\(', right: '\\)', display: false}
+          ],
+          throwOnError: false
+        });
+      });
+    </script>
+  </body>
+</html>

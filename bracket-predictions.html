@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- SEO & Meta Tags -->
+    <title>World Cup 2026 Match Predictions - Head-to-Head Probabilities</title>
+    <meta name="description" content="Group stage match predictions for World Cup 2026 using Kalshi prediction market data. See calculated win probabilities for each match." />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="min-h-screen bg-gradient-to-br from-amber-50 via-slate-50 to-cyan-100 text-slate-900">
+    <header class="px-6 py-10 sm:px-10">
+      <div class="mx-auto max-w-6xl">
+        <div class="flex flex-col gap-4">
+          <div class="flex items-center justify-between">
+            <div class="inline-flex items-center gap-2 text-xs uppercase tracking-[0.35em] text-slate-500">
+              <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+              World Cup 2026
+            </div>
+            <a
+              href="prediction-methodology.html"
+              target="_blank"
+              class="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-600 shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-md"
+            >
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              </svg>
+              How was this calculated?
+            </a>
+          </div>
+          <h1 class="text-3xl font-semibold sm:text-5xl">Match Predictions</h1>
+          <p class="max-w-2xl text-sm text-slate-600 sm:text-base">
+            Group stage match predictions derived from Kalshi prediction market data.
+            Win probabilities are calculated from each team's World Cup championship odds.
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <main class="px-6 pb-16 sm:px-10">
+      <section class="mx-auto max-w-6xl space-y-6">
+        <!-- Status Section -->
+        <div class="rounded-2xl border border-slate-200 bg-white/70 p-6 shadow-sm">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 class="text-lg font-semibold">Prediction Data</h2>
+              <p id="status-text" class="text-sm text-slate-500">Loading match data...</p>
+            </div>
+            <div id="loading-spinner" class="flex items-center gap-2 text-sm text-slate-500">
+              <svg class="h-5 w-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              <span>Loading...</span>
+            </div>
+          </div>
+          <div id="data-freshness" class="mt-4 hidden text-xs text-slate-400"></div>
+          <div id="error-message" class="mt-4 hidden rounded-lg bg-red-50 p-3 text-sm text-red-700"></div>
+        </div>
+
+        <!-- Groups Container -->
+        <div id="groups-container" class="space-y-8"></div>
+
+        <!-- Predicted Group Standings -->
+        <section class="space-y-4">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 class="text-2xl font-semibold">Predicted Group Standings</h2>
+              <p class="text-sm text-slate-600">Expected final standings based on win probabilities.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+              <span class="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50/60 px-3 py-1">
+                <span class="h-2 w-2 rounded-full bg-emerald-300"></span>
+                Advances (1st/2nd)
+              </span>
+              <span class="inline-flex items-center gap-2 rounded-full border border-amber-100 bg-amber-50/60 px-3 py-1">
+                <span class="h-2 w-2 rounded-full bg-amber-300"></span>
+                Third Place
+              </span>
+            </div>
+          </div>
+          <div id="predicted-standings" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3"></div>
+        </section>
+
+        <!-- Third-Place Rankings -->
+        <section class="space-y-4">
+          <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <h3 class="text-lg font-semibold">Third-Place Rankings</h3>
+                <p class="text-xs text-slate-500">
+                  All 12 third-place teams ranked by expected points. Top 8 advance to the knockout stage.
+                </p>
+              </div>
+              <span class="rounded-full bg-slate-100 px-3 py-1 text-[11px] uppercase tracking-widest text-slate-500">Top 8 Advance</span>
+            </div>
+            <div class="mt-4 overflow-hidden rounded-xl border border-slate-100">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-50 text-[11px] uppercase tracking-widest text-slate-400">
+                  <tr>
+                    <th class="px-3 py-2 text-center">Rank</th>
+                    <th class="px-3 py-2">Team</th>
+                    <th class="px-3 py-2 text-center">Group</th>
+                    <th class="px-3 py-2 text-center">Exp Pts</th>
+                    <th class="px-3 py-2 text-center">Status</th>
+                  </tr>
+                </thead>
+                <tbody id="predicted-thirds-table" class="divide-y divide-slate-100 text-slate-700"></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <!-- Predicted Knockout Bracket -->
+        <section class="space-y-4">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <h2 class="text-2xl font-semibold">Predicted Knockout Bracket</h2>
+              <p class="text-sm text-slate-600">Most likely tournament progression based on relative team strengths.</p>
+            </div>
+            <div class="text-xs uppercase tracking-[0.35em] text-slate-400">Round of 32 → Final</div>
+          </div>
+          <div id="predicted-knockout" class="grid gap-4 overflow-x-auto pb-2 lg:grid-cols-5"></div>
+        </section>
+
+        <!-- Predicted Champion & Third Place -->
+        <section class="space-y-4">
+          <div class="grid gap-4 lg:grid-cols-[2fr,1fr]">
+            <div class="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 shadow-sm">
+              <div class="flex flex-col items-center gap-4 text-center">
+                <div>
+                  <h3 class="text-lg font-semibold text-emerald-900">Predicted Champion</h3>
+                  <p class="text-sm text-emerald-700">The team most likely to win the tournament based on probability analysis.</p>
+                </div>
+                <div id="predicted-champion" class="flex items-center gap-4">
+                  <span class="text-sm text-emerald-600">Calculating...</span>
+                </div>
+              </div>
+            </div>
+            <div class="rounded-2xl border border-amber-200 bg-amber-50/60 p-6 shadow-sm">
+              <div class="flex flex-col items-center gap-4 text-center">
+                <div>
+                  <h3 class="text-lg font-semibold text-amber-900">Third Place</h3>
+                  <p class="text-sm text-amber-700">Predicted third place finisher.</p>
+                </div>
+                <div id="predicted-third-place" class="flex items-center gap-4">
+                  <span class="text-sm text-amber-600">Calculating...</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Formula Explanation -->
+        <div class="rounded-2xl border border-slate-100 bg-slate-50/50 p-6">
+          <h3 class="text-sm font-semibold text-slate-700">How Predictions Are Calculated</h3>
+          <ul class="mt-3 space-y-2 text-xs text-slate-500">
+            <li><strong>World Cup Win %:</strong> Each team's probability to win the tournament, from Kalshi prediction market data.</li>
+            <li><strong>Log Ratio:</strong> ln(P_Home / P_Away) - measures the relative strength between teams.</li>
+            <li><strong>Raw P(Home):</strong> Logistic function converts log ratio to a probability between 0 and 1.</li>
+            <li><strong>Competitiveness:</strong> How close the match is expected to be. Closer matches have higher draw probability.</li>
+            <li><strong>Draw Adjustment:</strong> Base draw rate (26%) scaled by competitiveness, with remaining probability split between win outcomes.</li>
+          </ul>
+        </div>
+      </section>
+    </main>
+
+    <!-- Group Section Template -->
+    <template id="group-template">
+      <div class="space-y-4">
+        <div class="flex items-center gap-3">
+          <h2 class="text-xl font-semibold"></h2>
+          <span class="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500"></span>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" data-role="cards-container"></div>
+      </div>
+    </template>
+
+    <!-- Prediction Card Template -->
+    <template id="prediction-card-template">
+      <article class="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+        <!-- Header -->
+        <div class="flex items-center justify-between gap-2">
+          <div data-role="match-number" class="text-xs uppercase tracking-[0.25em] text-slate-400"></div>
+          <div data-role="match-date" class="text-xs font-medium text-slate-500"></div>
+        </div>
+
+        <!-- Teams Row -->
+        <div class="mt-4 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <img data-role="home-flag" class="h-5 w-7 rounded-sm border border-slate-200 object-cover" alt="" />
+            <span data-role="home-name" class="font-medium"></span>
+          </div>
+          <span class="text-xs text-slate-400">vs</span>
+          <div class="flex items-center gap-2">
+            <span data-role="away-name" class="font-medium text-right"></span>
+            <img data-role="away-flag" class="h-5 w-7 rounded-sm border border-slate-200 object-cover" alt="" />
+          </div>
+        </div>
+
+        <!-- WC Probabilities -->
+        <div class="mt-3 flex items-center justify-between text-xs text-slate-500">
+          <div class="flex items-center gap-1">
+            <span class="text-[10px] uppercase tracking-widest text-slate-400">WC Win:</span>
+            <span data-role="home-wc-prob" class="rounded bg-slate-100 px-1.5 py-0.5 font-semibold"></span>
+          </div>
+          <div class="flex items-center gap-1">
+            <span data-role="away-wc-prob" class="rounded bg-slate-100 px-1.5 py-0.5 font-semibold"></span>
+            <span class="text-[10px] uppercase tracking-widest text-slate-400">:WC Win</span>
+          </div>
+        </div>
+
+        <!-- Match Outcome Bars -->
+        <div class="mt-4">
+          <div class="mb-1 flex justify-between text-[10px] font-semibold uppercase tracking-widest text-slate-400">
+            <span>Match Outcome</span>
+          </div>
+          <div class="flex h-6 overflow-hidden rounded-lg">
+            <div data-role="home-win-bar" class="flex items-center justify-center bg-emerald-500 text-[10px] font-semibold text-white transition-all"></div>
+            <div data-role="draw-bar" class="flex items-center justify-center bg-amber-400 text-[10px] font-semibold text-amber-900 transition-all"></div>
+            <div data-role="away-win-bar" class="flex items-center justify-center bg-slate-400 text-[10px] font-semibold text-white transition-all"></div>
+          </div>
+          <div class="mt-1 flex justify-between text-[10px] text-slate-500">
+            <span data-role="home-short"></span>
+            <span>Draw</span>
+            <span data-role="away-short"></span>
+          </div>
+        </div>
+
+        <!-- Calculation Breakdown (Collapsible) -->
+        <details class="mt-4 text-xs">
+          <summary class="cursor-pointer text-[10px] font-semibold uppercase tracking-widest text-slate-400 hover:text-slate-600">
+            Calculation Breakdown
+          </summary>
+          <div class="mt-2 space-y-1 rounded-lg bg-slate-50 p-3 text-slate-600">
+            <div class="flex justify-between">
+              <span>Log Ratio ln(P_A/P_B):</span>
+              <span data-role="log-ratio" class="font-mono"></span>
+            </div>
+            <div class="flex justify-between">
+              <span>Raw P(Home Win):</span>
+              <span data-role="raw-pa" class="font-mono"></span>
+            </div>
+            <div class="flex justify-between">
+              <span>Competitiveness:</span>
+              <span data-role="competitiveness" class="font-mono"></span>
+            </div>
+            <div class="flex justify-between">
+              <span>Draw Probability:</span>
+              <span data-role="p-draw" class="font-mono"></span>
+            </div>
+            <div class="flex justify-between font-semibold">
+              <span>P(Home Win):</span>
+              <span data-role="p-home-win" class="font-mono text-emerald-600"></span>
+            </div>
+            <div class="flex justify-between font-semibold">
+              <span>P(Away Win):</span>
+              <span data-role="p-away-win" class="font-mono text-slate-600"></span>
+            </div>
+          </div>
+        </details>
+
+        <!-- Venue -->
+        <div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+          <span data-role="stadium" class="rounded-full bg-slate-100 px-3 py-1"></span>
+          <span data-role="location" class="rounded-full bg-slate-100 px-3 py-1"></span>
+        </div>
+      </article>
+    </template>
+
+    <!-- Predicted Standings Card Template -->
+    <template id="predicted-standings-template">
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h3 data-role="group-title" class="text-lg font-semibold">Group A</h3>
+          <span class="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500">Predicted</span>
+        </div>
+        <div class="mt-4 overflow-hidden rounded-xl border border-slate-100">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-[11px] uppercase tracking-widest text-slate-400">
+              <tr>
+                <th class="px-3 py-2">Team</th>
+                <th class="px-3 py-2 text-center">Exp Pts</th>
+              </tr>
+            </thead>
+            <tbody data-role="standings-body" class="divide-y divide-slate-100 text-slate-700"></tbody>
+          </table>
+        </div>
+      </article>
+    </template>
+
+    <!-- Predicted Knockout Match Template -->
+    <template id="predicted-knockout-template">
+      <article class="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+        <div data-role="match-label" class="text-[11px] uppercase tracking-widest text-slate-400"></div>
+        <div data-role="home-row" class="mt-2 flex items-center gap-2 rounded-lg p-2">
+          <img data-role="home-flag" class="h-4 w-6 rounded-sm border border-slate-200 object-cover" alt="" />
+          <span data-role="home-name" class="flex-1 text-sm font-medium"></span>
+          <span data-role="home-prob" class="text-xs font-semibold"></span>
+        </div>
+        <div data-role="away-row" class="flex items-center gap-2 rounded-lg p-2">
+          <img data-role="away-flag" class="h-4 w-6 rounded-sm border border-slate-200 object-cover" alt="" />
+          <span data-role="away-name" class="flex-1 text-sm font-medium"></span>
+          <span data-role="away-prob" class="text-xs font-semibold"></span>
+        </div>
+      </article>
+    </template>
+
+    <script src="js/bracket-predictions.js"></script>
+  </body>
+</html>
