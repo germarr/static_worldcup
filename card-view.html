@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    
+    <!-- SEO & Meta Tags -->
+    <title>World Cup 2026 Predictor & Pool - Interactive Bracket | Mis Quinielas Online</title>
+    <meta name="description" content="Simulate the 2026 World Cup! Free interactive group stage predictor, live standings calculator, and dynamic knockout bracket tool for your office pool." />
+    <link rel="canonical" href="https://misquinielasonline.com/" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://misquinielasonline.com/" />
+    <meta property="og:title" content="World Cup 2026 Predictor & Pool - Interactive Bracket" />
+    <meta property="og:description" content="Simulate the 2026 World Cup! Free interactive group stage predictor, live standings calculator, and dynamic knockout bracket tool." />
+    <meta property="og:image" content="https://misquinielasonline.com/og-image.jpg" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://misquinielasonline.com/" />
+    <meta property="twitter:title" content="World Cup 2026 Predictor & Pool - Interactive Bracket" />
+    <meta property="twitter:description" content="Simulate the 2026 World Cup! Free interactive group stage predictor, live standings calculator, and dynamic knockout bracket tool." />
+    <meta property="twitter:image" content="https://misquinielasonline.com/og-image.jpg" />
+
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "World Cup 2026 Predictor",
+      "url": "https://misquinielasonline.com/",
+      "description": "Interactive tool to predict FIFA World Cup 2026 group stage results and simulate the knockout bracket.",
+      "applicationCategory": "SportsApplication",
+      "operatingSystem": "Any"
+    }
+    </script>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body class="min-h-screen bg-gradient-to-br from-amber-50 via-slate-50 to-cyan-100 text-slate-900">
+    <header class="px-6 py-10 sm:px-10">
+      <div class="mx-auto max-w-6xl">
+        <div class="flex flex-col gap-4">
+          <nav class="flex gap-4 text-sm font-medium text-slate-600 no-print">
+            <a href="card-view.html" class="hover:text-emerald-600 border-b-2 border-emerald-500 text-slate-900">Card View</a>
+            <a href="group-grid.html" class="hover:text-emerald-600 transition-colors">Grid View</a>
+            <a href="print-pool.html" class="hover:text-emerald-600 transition-colors">Print Sheet</a>
+            <a href="results.html" class="hover:text-emerald-600 transition-colors">Results</a>
+            <a href="metrics.html" class="hover:text-emerald-600 transition-colors">Metrics</a>
+          </nav>
+          <div class="inline-flex items-center gap-2 text-xs uppercase tracking-[0.35em] text-slate-500">
+            <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+            World Cup 2026
+          </div>
+          <h1 class="text-3xl font-semibold sm:text-5xl">Group Stage Matches</h1>
+          <p class="max-w-2xl text-sm text-slate-600 sm:text-base">
+            All group-stage fixtures with kick-off times and stadiums. Cards are grouped by group
+            letter and ordered by match number.
+          </p>
+        </div>
+      </div>
+    </header>
+
+    <main class="px-6 pb-16 sm:px-10">
+      <div id="status" class="mx-auto max-w-6xl rounded-2xl border border-slate-200 bg-white/70 p-6 text-sm text-slate-500">
+        Loading matches...
+      </div>
+
+      <section class="mx-auto mt-2 max-w-6xl space-y-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div class="flex flex-wrap items-center gap-3">
+            <div class="text-xs uppercase tracking-[0.35em] text-slate-400">Groups A-L</div>
+            <button
+              id="randomize-results"
+              class="rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-600 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm"
+              type="button"
+            >
+              Randomize Picks
+            </button>
+          </div>
+        </div>
+        <div class="space-y-2">
+          <div id="pick-summary" class="text-xs text-slate-500">Missing picks: 0</div>
+          <div class="h-2 w-full rounded-full bg-slate-100">
+            <div id="pick-progress" class="h-2 rounded-full bg-emerald-200" style="width: 0%"></div>
+          </div>
+        </div>
+        
+      </section>
+
+      <section class="mx-auto mt-10 max-w-6xl space-y-4">
+        <div id="groups" class="mx-auto mt-12 max-w-6xl space-y-10"></div>
+      </section>
+      
+
+      <section class="mx-auto mt-10 max-w-6xl space-y-4">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 class="text-2xl font-semibold">Group Standings</h2>
+            <p class="text-sm text-slate-600">Top two and best third from each group based on your picks.</p>
+          </div>
+        </div>
+        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+          <span class="inline-flex items-center gap-2 rounded-full border border-emerald-100 bg-emerald-50/60 px-3 py-1">
+            <span class="h-2 w-2 rounded-full bg-emerald-300"></span>
+            Top 2
+          </span>
+          <span class="inline-flex items-center gap-2 rounded-full border border-amber-100 bg-amber-50/60 px-3 py-1">
+            <span class="h-2 w-2 rounded-full bg-amber-300"></span>
+            Third
+          </span>
+        </div>
+
+        <div id="standings" class="grid gap-4 md:grid-cols-2 xl:grid-cols-4"></div>
+      </section>
+      
+
+      <section class="mx-auto mt-12 max-w-6xl space-y-4">
+        <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h3 class="text-lg font-semibold">Third-Place Rankings</h3>
+              <p class="text-xs text-slate-500">
+                All third-place teams ranked by points, then goal difference. Drag and drop rows to adjust the order.
+              </p>
+            </div>
+            <span class="rounded-full bg-slate-100 px-3 py-1 text-[11px] uppercase tracking-widest text-slate-500">Top 8 Advance</span>
+          </div>
+          <div class="mt-4 overflow-hidden rounded-xl border border-slate-100">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-[11px] uppercase tracking-widest text-slate-400">
+                <tr>
+                  <th class="px-3 py-2 text-center">Ranking</th>
+                  <th class="px-3 py-2">Team</th>
+                  <th class="px-3 py-2 text-center">Group</th>
+                  <th class="px-3 py-2 text-center">P</th>
+                  <th class="px-3 py-2 text-center">GD</th>
+                  <th class="px-3 py-2 text-center">Pts</th>
+                </tr>
+              </thead>
+              <tbody id="third-place-table" class="divide-y divide-slate-100 text-slate-700"></tbody>
+            </table>
+          </div>
+          <p class="mt-3 text-[11px] text-slate-400">Highlighted rows indicate the top eight third-place teams.</p>
+        </div>
+      </section>
+
+      <section class="mx-auto mt-12 max-w-6xl space-y-4">
+        <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h2 class="text-2xl font-semibold">Knockout Bracket</h2>
+            <p class="text-sm text-slate-600">Pick winners to advance through the knockout rounds.</p>
+          </div>
+          <div class="text-xs uppercase tracking-[0.35em] text-slate-400">Round of 32 - Final</div>
+        </div>
+        <div id="knockout" class="grid gap-4 overflow-x-auto pb-2 lg:grid-cols-5">
+          <div class="rounded-2xl border border-slate-200 bg-white/70 p-4 text-sm text-slate-500">Loading bracket...</div>
+        </div>
+      </section>
+
+      <section class="mx-auto mt-12 max-w-6xl">
+        <div class="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-6 text-center shadow-sm">
+          <h3 class="text-lg font-semibold text-emerald-900">Ready to see how you did?</h3>
+          <p class="mt-1 text-sm text-emerald-700">Compare your predictions against the actual match results.</p>
+          <a
+            id="view-results-btn"
+            href="results.html"
+            class="mt-4 inline-block rounded-full border border-emerald-600 bg-emerald-600 px-6 py-2 text-sm font-semibold uppercase tracking-widest text-white transition hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-md"
+          >
+            View Results
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <template id="group-template">
+      <section class="space-y-4">
+        <div class="flex items-center justify-between">
+          <h2 class="text-2xl font-semibold">Group A</h2>
+          <span class="rounded-full bg-slate-900 px-3 py-1 text-xs uppercase tracking-widest text-white">Group Stage</span>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+      </section>
+    </template>
+
+    <template id="card-template">
+      <article class="group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
+        <div data-role="status" class="absolute right-4 top-4 rounded-full bg-amber-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-amber-700"></div>
+        <div class="flex items-center justify-between gap-2">
+          <div data-role="match-number" class="text-xs uppercase tracking-[0.25em] text-slate-400"></div>
+          <div data-role="match-date" class="text-xs font-medium text-slate-500 pr-20"></div>
+        </div>
+        <div class="mt-4 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <img data-role="home-flag" class="h-5 w-7 rounded-sm border border-slate-200 object-cover" alt="" />
+            <span data-role="home-name" class="font-medium"></span>
+          </div>
+          <div class="flex items-center gap-2">
+            <span data-role="away-name" class="font-medium text-right"></span>
+            <img data-role="away-flag" class="h-5 w-7 rounded-sm border border-slate-200 object-cover" alt="" />
+          </div>
+        </div>
+        <div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+          <span data-role="stadium" class="rounded-full bg-slate-100 px-3 py-1"></span>
+          <span data-role="location" class="rounded-full bg-slate-100 px-3 py-1"></span>
+        </div>
+        <div class="mt-4 flex flex-wrap items-center gap-2 text-xs text-slate-500">
+          <span class="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Pick</span>
+          <div data-role="pick-group" class="flex flex-wrap gap-2"></div>
+        </div>
+      </article>
+    </template>
+
+    <template id="standings-template">
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold"></h3>
+          <span class="rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-emerald-700">Top 4</span>
+        </div>
+        <div class="mt-4 overflow-hidden rounded-xl border border-slate-100">
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-50 text-[11px] uppercase tracking-widest text-slate-400">
+              <tr>
+                <th class="px-3 py-2">Team</th>
+                <th class="px-3 py-2 text-center">P</th>
+                <th class="px-3 py-2 text-center">GD</th>
+                <th class="px-3 py-2 text-center">Pts</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-slate-700"></tbody>
+          </table>
+        </div>
+        <p class="mt-3 text-[11px] text-slate-400">Sorted by points, goal difference, goals for.</p>
+      </article>
+    </template>
+
+    <template id="knockout-template">
+      <article class="rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+        <div class="flex items-center justify-between text-[11px] uppercase tracking-widest text-slate-400">
+          <span data-role="round"></span>
+          <span data-role="match-number"></span>
+        </div>
+        <div class="mt-3 space-y-2 text-sm">
+          <div class="flex items-center gap-2">
+            <img data-role="home-flag" class="h-4 w-6 rounded-sm border border-slate-200 object-cover" alt="" />
+            <span data-role="home-name" class="font-medium"></span>
+          </div>
+          <div class="flex items-center gap-2">
+            <img data-role="away-flag" class="h-4 w-6 rounded-sm border border-slate-200 object-cover" alt="" />
+            <span data-role="away-name" class="font-medium"></span>
+          </div>
+        </div>
+        <div class="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-slate-500">
+          <span class="text-[10px] font-semibold uppercase tracking-widest text-slate-400">Pick winner</span>
+          <div data-role="pick-group" class="flex flex-wrap gap-2"></div>
+        </div>
+        <div class="mt-3 space-y-1 text-[11px] text-slate-500">
+          <div data-role="match-date"></div>
+          <div data-role="stadium"></div>
+        </div>
+      </article>
+    </template>
+
+    <script src="js/compression.js"></script>
+    <script src="js/shared.js"></script>
+    <script src="js/index.js"></script>
+  </body>
+</html>

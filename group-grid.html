@@ -37,7 +37,7 @@
       <div class="mx-auto max-w-6xl">
         <div class="flex flex-col gap-4">
           <nav class="flex gap-4 text-sm font-medium text-slate-600 no-print">
-            <a href="index.html" class="hover:text-emerald-600 transition-colors">Card View</a>
+            <a href="card-view.html" class="hover:text-emerald-600 transition-colors">Card View</a>
             <a href="group-grid.html" class="hover:text-emerald-600 border-b-2 border-emerald-500 text-slate-900">Grid View</a>
             <a href="print-pool.html" class="hover:text-emerald-600 transition-colors">Print Sheet</a>
             <a href="results.html" class="hover:text-emerald-600 transition-colors">Results</a>
@@ -79,6 +79,14 @@
           <div class="h-2 w-full rounded-full bg-slate-100">
             <div id="pick-progress" class="h-2 rounded-full bg-emerald-200" style="width: 0%"></div>
           </div>
+        </div>
+        <div class="flex justify-center mt-4">
+          <button id="qr-code-btn" class="hidden inline-flex items-center gap-2 rounded-full border border-emerald-600 bg-emerald-600 px-6 py-3 text-sm font-semibold uppercase tracking-widest text-white transition hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-md no-print" type="button">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
+            </svg>
+            Get QR of your game
+          </button>
         </div>
       </section>
 
@@ -155,7 +163,7 @@
           </span>
         </div>
 
-        <div id="standings" class="grid gap-4 md:grid-cols-2 xl:grid-cols-4"></div>
+        <div id="standings" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3"></div>
       </section>
       
 
@@ -268,6 +276,9 @@
               <tr>
                 <th class="px-3 py-2">Team</th>
                 <th class="px-3 py-2 text-center">P</th>
+                <th class="px-3 py-2 text-center">W-D-L</th>
+                <th class="px-3 py-2 text-center">GF</th>
+                <th class="px-3 py-2 text-center">GA</th>
                 <th class="px-3 py-2 text-center">GD</th>
                 <th class="px-3 py-2 text-center">Pts</th>
               </tr>
@@ -307,6 +318,41 @@
     </template>
 
 
+    <!-- QR Code Modal -->
+    <div id="qr-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+      <div class="mx-4 w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-slate-900">Share Your Bracket</h3>
+          <button id="qr-close-btn" class="rounded-full p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600" type="button">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <p class="mt-2 text-sm text-slate-500">Scan this QR code to view this bracket on another device.</p>
+        <div id="qr-container" class="mt-4 flex justify-center"></div>
+        <div class="mt-4 flex gap-2">
+          <button id="qr-download-btn" class="flex-1 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-600 transition hover:-translate-y-0.5 hover:shadow-sm" type="button">
+            <span class="inline-flex items-center gap-1">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+              </svg>
+              Download
+            </span>
+          </button>
+          <button id="qr-copy-url-btn" class="flex-1 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-600 transition hover:-translate-y-0.5 hover:shadow-sm" type="button">
+            <span class="inline-flex items-center gap-1">
+              <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+              </svg>
+              Copy URL
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script src="js/vendor/qrcode.min.js"></script>
     <script src="js/compression.js"></script>
     <script src="js/shared.js"></script>
     <script src="js/grid.js"></script>

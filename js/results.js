@@ -431,6 +431,101 @@ const setupFilters = (matches, picks, teamsById) => {
 };
 
 /**
+ * QR Code Modal Functions
+ */
+let qrCodeInstance = null;
+
+const openQRModal = () => {
+  const modal = document.getElementById("qr-modal");
+  const container = document.getElementById("qr-container");
+
+  // Clear previous QR code
+  container.innerHTML = "";
+
+  // Generate new QR code for current URL
+  qrCodeInstance = new QRCode(container, {
+    text: window.location.href,
+    width: 256,
+    height: 256,
+    colorDark: "#0f172a", // slate-900
+    colorLight: "#ffffff",
+    correctLevel: QRCode.CorrectLevel.M,
+  });
+
+  // Show modal with flex display
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+};
+
+const closeQRModal = () => {
+  const modal = document.getElementById("qr-modal");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+};
+
+const downloadQR = () => {
+  const container = document.getElementById("qr-container");
+  const canvas = container.querySelector("canvas");
+
+  if (canvas) {
+    const link = document.createElement("a");
+    link.download = "worldcup-bracket-qr.png";
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  }
+};
+
+const copyUrl = async () => {
+  const btn = document.getElementById("qr-copy-url-btn");
+  const originalHTML = btn.innerHTML;
+
+  try {
+    await navigator.clipboard.writeText(window.location.href);
+    btn.innerHTML = `
+      <span class="inline-flex items-center gap-1">
+        <svg class="h-4 w-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+        </svg>
+        Copied!
+      </span>
+    `;
+    btn.classList.add("border-emerald-500", "text-emerald-600");
+
+    setTimeout(() => {
+      btn.innerHTML = originalHTML;
+      btn.classList.remove("border-emerald-500", "text-emerald-600");
+    }, 2000);
+  } catch (err) {
+    console.error("Failed to copy URL:", err);
+  }
+};
+
+const initQRModal = () => {
+  const openBtn = document.getElementById("qr-code-btn");
+  const closeBtn = document.getElementById("qr-close-btn");
+  const modal = document.getElementById("qr-modal");
+  const downloadBtn = document.getElementById("qr-download-btn");
+  const copyBtn = document.getElementById("qr-copy-url-btn");
+
+  openBtn.addEventListener("click", openQRModal);
+  closeBtn.addEventListener("click", closeQRModal);
+  downloadBtn.addEventListener("click", downloadQR);
+  copyBtn.addEventListener("click", copyUrl);
+
+  // Close on backdrop click
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) closeQRModal();
+  });
+
+  // Close on Escape key
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+      closeQRModal();
+    }
+  });
+};
+
+/**
  * Initialize the results page
  */
 const init = async () => {
@@ -474,6 +569,11 @@ const init = async () => {
 
     // Setup filters
     setupFilters(matches, picks, teamsById);
+
+    // Show QR button and initialize modal (only if picks exist)
+    const qrBtn = document.getElementById("qr-code-btn");
+    qrBtn.classList.remove("hidden");
+    initQRModal();
 
     // Hide loading status
     statusEl.style.display = "none";

@@ -8,6 +8,8 @@ import requests
 from fastapi import FastAPI, HTTPException, Query, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.routers import metrics
+
 app = FastAPI(title="World Cup 2026 API")
 
 # Cache settings
@@ -272,6 +274,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Include routers
+app.include_router(metrics.router)
+
 DATA_DIR = Path(__file__).parent / "data"
 
 
@@ -334,6 +339,9 @@ def get_kalshi_history_endpoint(
         force_refresh: If true, fetch fresh data ignoring cache
     """
     try:
+        # Calculate cutoff timestamp for filtering by days_back
+        cutoff_ts = int((datetime.now(timezone.utc) - timedelta(days=days_back)).timestamp())
+
         # Try to load from cache first
         if not force_refresh:
             cached = load_cached_history()
@@ -344,11 +352,11 @@ def get_kalshi_history_endpoint(
                     and len(cached.get("teams", [])) >= top_n_teams
                 )
                 if cache_matches:
-                    # Filter to requested number of teams
+                    # Filter to requested number of teams AND date range
                     requested_teams = set(cached["teams"][:top_n_teams])
                     filtered_history = [
                         h for h in cached.get("history", [])
-                        if h["team_name"] in requested_teams
+                        if h["team_name"] in requested_teams and h["timestamp"] >= cutoff_ts
                     ]
                     return {
                         "event_ticker": cached.get("event_ticker"),
@@ -371,10 +379,16 @@ def get_kalshi_history_endpoint(
         history_data["event_ticker"] = event_ticker.upper()
         save_history_cache(history_data)
 
+        # Filter history by cutoff timestamp (in case API returns extra data)
+        filtered_history = [
+            h for h in history_data["history"]
+            if h["timestamp"] >= cutoff_ts
+        ]
+
         return {
             "event_ticker": event_ticker.upper(),
             "teams": history_data["teams"],
-            "history": history_data["history"],
+            "history": filtered_history,
             "cached_at": datetime.now(timezone.utc).isoformat(),
             "from_cache": False,
         }

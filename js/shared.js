@@ -133,6 +133,10 @@ const loadPicksFromHash = async () => {
     return decoded;
   } catch (error) {
     console.error("Failed to decode picks:", error);
+    // Clean up invalid URL hash to prevent ghost brackets
+    const baseUrl = `${window.location.pathname}${window.location.search}`;
+    history.replaceState(null, "", baseUrl);
+    console.log("- loadPicksFromHash: cleared invalid URL hash");
     return {};
   }
 };
@@ -140,23 +144,25 @@ const loadPicksFromHash = async () => {
 /**
  * Persist picks to URL hash
  */
+const metadataKeys = ["knockout", "thirdPlaceOrder", "standingsOrder"];
+
 const persistPicks = async () => {
   const baseUrl = `${window.location.pathname}${window.location.search}`;
   const knockoutPicks = picks?.knockout || {};
-  const thirdPlaceOrder = picks?.thirdPlaceOrder || [];
-  const standingsOrder = picks?.standingsOrder || {};
-  const { knockout, ...groupPicks } = picks;
-  const hasGroupPicks = Object.keys(groupPicks || {}).length > 0;
+  const groupPickKeys = Object.keys(picks || {}).filter((k) => !metadataKeys.includes(k));
+  const hasGroupPicks = groupPickKeys.length > 0;
   const hasKnockoutPicks = Object.keys(knockoutPicks).length > 0;
-  const hasThirdPlaceOrder = thirdPlaceOrder.length > 0;
-  const hasStandingsOrder = Object.keys(standingsOrder).length > 0;
-  const hasPicks = hasGroupPicks || hasKnockoutPicks || hasThirdPlaceOrder || hasStandingsOrder;
+  // Only persist if there are actual picks (thirdPlaceOrder and standingsOrder are derived metadata)
+  const hasPicks = hasGroupPicks || hasKnockoutPicks;
   if (!hasPicks) {
     history.replaceState(null, "", baseUrl);
+    updateNavLinks();
     return;
   }
   const encoded = await encodePicks(picks);
   history.replaceState(null, "", `${baseUrl}#p=${encoded}`);
+  // Update nav links since replaceState doesn't trigger hashchange
+  updateNavLinks();
 };
 
 /**
@@ -444,6 +450,7 @@ window.addEventListener("hashchange", updateNavLinks);
 
 // Update nav links on DOM ready
 document.addEventListener("DOMContentLoaded", updateNavLinks);
+
 
 // Export for use in page-specific scripts (using global scope)
 window.WorldCupPool = {

@@ -414,15 +414,15 @@ def save_rankings(session: Session, ranking_df: pd.DataFrame, event_ticker: str,
     if ranking_df.empty:
         return
 
-    session.connection().exec_driver_sql(
-        "DELETE FROM kalshi_team_rankings WHERE event_ticker = :event_ticker",
+    session.execute(
+        text("DELETE FROM kalshi_team_rankings WHERE event_ticker = :event_ticker"),
         {"event_ticker": event_ticker.upper()},
     )
     rows = []
     for record in ranking_df.to_dict("records"):
         rows.append(
             KalshiTeamRanking(
-                team_id=record.get("team_id"),
+                team_id=_clean_value(record.get("team_id")),
                 team_name=record.get("team_name"),
                 event_ticker=event_ticker.upper(),
                 series_ticker=record.get("series_ticker"),
@@ -440,7 +440,7 @@ def save_chances(session: Session, ticker_df: pd.DataFrame, event_ticker: str) -
         return
 
     insert_sql = """
-        INSERT OR IGNORE INTO kalshi_team_chances (
+        INSERT INTO kalshi_team_chances (
             team_id, team_name, event_ticker, series_ticker, market_ticker,
             end_period_ts, end_period_utc, yes_bid_open, yes_ask_close,
             mid_cents, volume, open_interest, created_at
@@ -449,13 +449,14 @@ def save_chances(session: Session, ticker_df: pd.DataFrame, event_ticker: str) -
             :end_period_ts, :end_period_utc, :yes_bid_open, :yes_ask_close,
             :mid_cents, :volume, :open_interest, :created_at
         )
+        ON CONFLICT (market_ticker, end_period_ts) DO NOTHING
         """
 
     payload = []
     for record in ticker_df.to_dict("records"):
         payload.append(
             {
-                "team_id": record.get("team_id"),
+                "team_id": _clean_value(record.get("team_id")),
                 "team_name": record.get("team_name"),
                 "event_ticker": event_ticker.upper(),
                 "series_ticker": record.get("series_ticker"),
@@ -471,7 +472,8 @@ def save_chances(session: Session, ticker_df: pd.DataFrame, event_ticker: str) -
             }
         )
 
-    session.connection().exec_driver_sql(insert_sql, payload)
+    for row in payload:
+        session.execute(text(insert_sql), row)
     session.commit()
 
 def local_to_utc_epoch_range(start_year, start_month, start_day, start_hour,end_year, end_month, end_day, end_hour,start_minute=0, end_minute=0):
@@ -528,7 +530,10 @@ def run(
 
     ranking_df = build_ranking(ticker_df)
 
-    engine = create_engine(DATABASE_URL, echo=False, connect_args={"check_same_thread": False})
+    connect_args = {}
+    if DATABASE_URL.startswith("sqlite"):
+        connect_args["check_same_thread"] = False
+    engine = create_engine(DATABASE_URL, echo=False, connect_args=connect_args)
     SQLModel.metadata.create_all(engine)
 
     with Session(engine) as session:
@@ -550,9 +555,11 @@ if __name__ == "__main__":
     parser.add_argument("--granularity", type=int, default=None, help="Candlestick interval in minutes")
     args = parser.parse_args()
 
+    # Get today's date dynamically for end time
+    now = datetime.now()
     start_t_, end_t_ = local_to_utc_epoch_range(
-    2025, 12, 1, 0,   # start: Nov 11, 2025 7 PM NY time
-    2026, 1, 16, 21    # end:   Nov 12, 2025 1 AM NY time
+        2025, 12, 1, 0,   # start: Dec 1, 2025 midnight NY time
+        now.year, now.month, now.day, now.hour  # end: today
     )
 
     run(

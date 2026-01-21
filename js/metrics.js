@@ -71,6 +71,24 @@ const getRowClass = (rank) => {
 };
 
 /**
+ * Format cents as percentage
+ */
+const formatCents = (cents) => {
+  if (cents == null) return "—";
+  return `${cents}¢`;
+};
+
+/**
+ * Format volume with K/M suffix
+ */
+const formatVolume = (volume) => {
+  if (volume == null) return "—";
+  if (volume >= 1_000_000) return `${(volume / 1_000_000).toFixed(1)}M`;
+  if (volume >= 1_000) return `${(volume / 1_000).toFixed(1)}K`;
+  return volume.toLocaleString();
+};
+
+/**
  * Render rankings table
  */
 const renderRankings = (rankings) => {
@@ -80,17 +98,18 @@ const renderRankings = (rankings) => {
     const row = document.createElement("tr");
     row.className = getRowClass(team.rank);
 
+    const probability = team.probability ?? 0;
     row.innerHTML = `
       <td class="px-4 py-3 text-center font-semibold ${team.rank <= 3 ? 'text-amber-600' : ''}">${team.rank}</td>
       <td class="px-4 py-3 font-medium">${team.team_name}</td>
       <td class="px-4 py-3 text-center">
-        <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold ${team.mid_price >= 10 ? 'bg-emerald-100 text-emerald-700' : 'text-slate-600'}">
-          ${team.mid_price}%
+        <span class="inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold ${probability >= 10 ? 'bg-emerald-100 text-emerald-700' : 'text-slate-600'}">
+          ${probability}%
         </span>
       </td>
-      <td class="px-4 py-3 text-center text-slate-500">${team.yes_bid}</td>
-      <td class="px-4 py-3 text-center text-slate-500">${team.yes_ask}</td>
-      <td class="px-4 py-3 text-center text-slate-500">${team.volume.toLocaleString()}</td>
+      <td class="px-4 py-3 text-center text-slate-600">${formatCents(team.yes_bid)}</td>
+      <td class="px-4 py-3 text-center text-slate-600">${formatCents(team.yes_ask)}</td>
+      <td class="px-4 py-3 text-center text-slate-500 text-xs">${formatVolume(team.volume)}</td>
     `;
 
     rankingsTable.appendChild(row);
@@ -106,7 +125,7 @@ const fetchRankings = async () => {
   showLoading();
 
   try {
-    const response = await fetch(`${API_BASE_URL}/api/kalshi-rankings`);
+    const response = await fetch(`${API_BASE_URL}/api/metrics/rankings`);
 
     if (!response.ok) {
       const error = await response.json();
@@ -123,8 +142,10 @@ const fetchRankings = async () => {
     renderRankings(data.rankings);
     showStatus(`Successfully fetched ${data.rankings.length} teams from ${data.event_ticker}`);
 
-    fetchTime.textContent = `Last updated: ${formatTimestamp(data.fetched_at)}`;
-    fetchTime.classList.remove("hidden");
+    if (data.as_of) {
+      fetchTime.textContent = `Last updated: ${formatTimestamp(data.as_of)}`;
+      fetchTime.classList.remove("hidden");
+    }
 
   } catch (error) {
     console.error("Failed to fetch rankings:", error);
@@ -362,7 +383,7 @@ const fetchHistory = async () => {
   const daysBack = parseInt(daysBackSelect.value, 10);
 
   try {
-    const url = `${API_BASE_URL}/api/kalshi-history?top_n_teams=${topNTeams}&days_back=${daysBack}`;
+    const url = `${API_BASE_URL}/api/metrics/history?top_n_teams=${topNTeams}&days_back=${daysBack}`;
     const response = await fetch(url);
 
     if (!response.ok) {
@@ -382,17 +403,11 @@ const fetchHistory = async () => {
     renderChart(datasets);
 
     // Show success status
-    const cacheNote = data.from_cache ? " (from cache)" : " (fresh data)";
-    showHistoryStatus(`Loaded ${data.teams.length} teams${cacheNote}`);
+    showHistoryStatus(`Loaded ${data.teams.length} teams`);
 
-    // Show cache info
-    if (data.cached_at) {
-      chartCacheInfo.textContent = `Data cached at: ${formatTimestamp(data.cached_at)}`;
-    }
-    if (data.warning) {
-      showHistoryStatus(`Warning: ${data.warning}`, false);
-      historyStatus.classList.remove("bg-emerald-50", "text-emerald-700");
-      historyStatus.classList.add("bg-amber-50", "text-amber-700");
+    // Show data range info
+    if (data.data_from && data.data_to) {
+      chartCacheInfo.textContent = `Data range: ${formatTimestamp(data.data_from)} - ${formatTimestamp(data.data_to)}`;
     }
 
   } catch (error) {

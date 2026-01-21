@@ -25,7 +25,7 @@
       <div class="mx-auto max-w-6xl">
         <div class="flex flex-col gap-4">
           <nav class="flex gap-4 text-sm font-medium text-slate-600 no-print">
-            <a href="index.html" class="hover:text-emerald-600 transition-colors">Card View</a>
+            <a href="card-view.html" class="hover:text-emerald-600 transition-colors">Card View</a>
             <a href="group-grid.html" class="hover:text-emerald-600 transition-colors">Grid View</a>
             <a href="print-pool.html" class="hover:text-emerald-600 transition-colors">Print Sheet</a>
             <a href="results.html" class="hover:text-emerald-600 transition-colors">Results</a>
@@ -90,7 +90,7 @@
             </table>
           </div>
           <p class="mt-4 text-xs text-slate-400">
-            Prices shown in cents (1-99) represent implied probability percentage. Higher bid = higher market confidence.
+            Probabilities represent the market's implied confidence that each team wins the tournament.
           </p>
         </div>
 
@@ -157,10 +157,11 @@
         <div class="rounded-2xl border border-slate-100 bg-slate-50/50 p-6">
           <h3 class="text-sm font-semibold text-slate-700">How to Read the Data</h3>
           <ul class="mt-3 space-y-2 text-xs text-slate-500">
-            <li><strong>Win Prob %:</strong> The midpoint between bid and ask prices - represents the market's implied probability that this team wins the tournament.</li>
-            <li><strong>Bid:</strong> The highest price someone is willing to pay for a "yes" contract (team wins).</li>
-            <li><strong>Ask:</strong> The lowest price someone is willing to sell a "yes" contract.</li>
-            <li><strong>Volume:</strong> Total number of contracts traded for this team.</li>
+            <li><strong>Win Prob %:</strong> The market's implied probability that this team wins the tournament, derived from Kalshi prediction market data.</li>
+            <li><strong>Rank:</strong> Teams are ordered by their win probability, with higher probability = higher rank.</li>
+            <li><strong>Bid:</strong> The highest price buyers are willing to pay for a "Yes" contract (in cents). A 20¢ bid means buyers will pay up to $0.20.</li>
+            <li><strong>Ask:</strong> The lowest price sellers are asking for a "Yes" contract (in cents). A 25¢ ask means sellers want at least $0.25.</li>
+            <li><strong>Volume:</strong> Total number of contracts traded for this team's market. Higher volume indicates more market activity and liquidity.</li>
           </ul>
         </div>
       </section>

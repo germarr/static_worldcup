@@ -122,6 +122,7 @@
       renderStandings();
       renderGroups();
       renderKnockout();
+      updateQRButtonVisibility();
     });
     pickCell.appendChild(pickGroupEl);
 
@@ -355,6 +356,18 @@
         playedCell.className = "px-3 py-2 text-center";
         playedCell.textContent = row.played;
 
+        const wdlCell = document.createElement("td");
+        wdlCell.className = "px-3 py-2 text-center";
+        wdlCell.textContent = `${row.won}-${row.drawn}-${row.lost}`;
+
+        const gfCell = document.createElement("td");
+        gfCell.className = "px-3 py-2 text-center";
+        gfCell.textContent = row.gf;
+
+        const gaCell = document.createElement("td");
+        gaCell.className = "px-3 py-2 text-center";
+        gaCell.textContent = row.ga;
+
         const gdCell = document.createElement("td");
         gdCell.className = "px-3 py-2 text-center";
         gdCell.textContent = row.gd;
@@ -365,6 +378,9 @@
 
         tr.appendChild(teamCell);
         tr.appendChild(playedCell);
+        tr.appendChild(wdlCell);
+        tr.appendChild(gfCell);
+        tr.appendChild(gaCell);
         tr.appendChild(gdCell);
         tr.appendChild(ptsCell);
         tbody.appendChild(tr);
@@ -444,6 +460,7 @@
           WCP.picks.knockout[match.key] = option.id;
           WCP.persistPicks();
           renderKnockout();
+          updateQRButtonVisibility();
         }
       });
 
@@ -608,6 +625,7 @@
 
     WCP.persistPicks();
     renderKnockout();
+    updateQRButtonVisibility();
   };
 
   /**
@@ -626,6 +644,7 @@
     renderGroups();
     renderKnockout();
     WCP.updatePickSummary(pickSummaryEl, pickProgressEl);
+    updateQRButtonVisibility();
   };
 
   /**
@@ -653,6 +672,121 @@
         button.classList.add("border-slate-200", "bg-white", "text-slate-600");
       }
     });
+  };
+
+  /**
+   * QR Code Modal Functions
+   */
+  let qrCodeInstance = null;
+
+  const openQRModal = () => {
+    const modal = document.getElementById("qr-modal");
+    const container = document.getElementById("qr-container");
+
+    // Clear previous QR code
+    container.innerHTML = "";
+
+    // Generate new QR code for current URL
+    qrCodeInstance = new QRCode(container, {
+      text: window.location.href,
+      width: 256,
+      height: 256,
+      colorDark: "#0f172a", // slate-900
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.M,
+    });
+
+    // Show modal with flex display
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+  };
+
+  const closeQRModal = () => {
+    const modal = document.getElementById("qr-modal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  };
+
+  const downloadQR = () => {
+    const container = document.getElementById("qr-container");
+    const canvas = container.querySelector("canvas");
+
+    if (canvas) {
+      const link = document.createElement("a");
+      link.download = "worldcup-bracket-qr.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    }
+  };
+
+  const copyUrl = async () => {
+    const btn = document.getElementById("qr-copy-url-btn");
+    const originalHTML = btn.innerHTML;
+
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      btn.innerHTML = `
+        <span class="inline-flex items-center gap-1">
+          <svg class="h-4 w-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+          </svg>
+          Copied!
+        </span>
+      `;
+      btn.classList.add("border-emerald-500", "text-emerald-600");
+
+      setTimeout(() => {
+        btn.innerHTML = originalHTML;
+        btn.classList.remove("border-emerald-500", "text-emerald-600");
+      }, 2000);
+    } catch (err) {
+      console.error("Failed to copy URL:", err);
+    }
+  };
+
+  const initQRModal = () => {
+    const openBtn = document.getElementById("qr-code-btn");
+    const closeBtn = document.getElementById("qr-close-btn");
+    const modal = document.getElementById("qr-modal");
+    const downloadBtn = document.getElementById("qr-download-btn");
+    const copyBtn = document.getElementById("qr-copy-url-btn");
+
+    openBtn.addEventListener("click", openQRModal);
+    closeBtn.addEventListener("click", closeQRModal);
+    downloadBtn.addEventListener("click", downloadQR);
+    copyBtn.addEventListener("click", copyUrl);
+
+    // Close on backdrop click
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeQRModal();
+    });
+
+    // Close on Escape key
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+        closeQRModal();
+      }
+    });
+  };
+
+  /**
+   * Update QR button visibility based on picks
+   */
+  const updateQRButtonVisibility = () => {
+    const qrBtn = document.getElementById("qr-code-btn");
+    if (!qrBtn) return;
+
+    // Count picks (excluding metadata keys)
+    const groupPicksCount = Object.keys(WCP.picks).filter(
+      (k) => !["knockout", "thirdPlaceOrder", "standingsOrder"].includes(k)
+    ).length;
+    const knockoutPicksCount = Object.keys(WCP.picks.knockout || {}).length;
+
+    if (groupPicksCount > 0 || knockoutPicksCount > 0) {
+      qrBtn.classList.remove("hidden");
+    } else {
+      qrBtn.classList.add("hidden");
+    }
   };
 
   /**
@@ -697,6 +831,10 @@
         });
       });
       updateGroupFilterButtons();
+
+      // Initialize QR modal and show button if picks exist
+      initQRModal();
+      updateQRButtonVisibility();
     } catch (error) {
       console.error("Failed to initialize:", error);
       statusEl.textContent = "Failed to load data.";
