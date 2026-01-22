@@ -140,18 +140,70 @@
   };
 
   /**
+   * Create a mobile match card for the card view
+   */
+  const mobileMatchCardTemplate = document.getElementById("mobile-match-card-template");
+
+  const createMobileMatchCard = (match) => {
+    const card = mobileMatchCardTemplate.content.cloneNode(true);
+
+    const currentPick = WCP.picks[match.id];
+    const statusText = currentPick ? "Picked" : "Tap to pick";
+    const statusClass = currentPick
+      ? "text-emerald-600"
+      : "text-slate-400";
+
+    const homeTeam = WCP.teamsById.get(match.home_team_id) || { name: "TBD", flag_emoji: "" };
+    const awayTeam = WCP.teamsById.get(match.away_team_id) || { name: "TBD", flag_emoji: "" };
+
+    card.querySelector('[data-role="group"]').textContent = match.group_letter || "-";
+    card.querySelector('[data-role="match-number"]').textContent = `#${match.match_number}`;
+    card.querySelector('[data-role="date"]').textContent = WCP.formatDate(match.scheduled_datetime);
+
+    card.querySelector('[data-role="home-flag"]').src = homeTeam.flag_emoji || "";
+    card.querySelector('[data-role="home-flag"]').alt = `${homeTeam.name} flag`;
+    card.querySelector('[data-role="home-name"]').textContent = homeTeam.name;
+
+    card.querySelector('[data-role="away-flag"]').src = awayTeam.flag_emoji || "";
+    card.querySelector('[data-role="away-flag"]').alt = `${awayTeam.name} flag`;
+    card.querySelector('[data-role="away-name"]').textContent = awayTeam.name;
+
+    const pickGroupEl = card.querySelector('[data-role="pick-group"]');
+    WCP.createPickControls(match, pickGroupEl, "mobile", () => {
+      WCP.updatePickSummary(pickSummaryEl, pickProgressEl);
+      renderStandings();
+      renderGroups();
+      renderKnockout();
+      updateQRButtonVisibility();
+    });
+
+    const statusEl = card.querySelector('[data-role="status"]');
+    statusEl.textContent = statusText;
+    statusEl.className = `mt-2 text-center text-[10px] uppercase tracking-widest ${statusClass}`;
+
+    return card;
+  };
+
+  /**
    * Render groups as a grid table
    */
+  const groupsMobileEl = document.getElementById("groups-mobile");
+
   const renderGroups = () => {
     groupsEl.innerHTML = "";
+    groupsMobileEl.innerHTML = "";
 
-    WCP.matches
+    const filteredMatches = WCP.matches
       .filter((match) => match.round === "group_stage")
       .filter((match) => currentGroupFilter === "all" || match.group_letter === currentGroupFilter)
-      .sort((a, b) => compareMatches(a, b))
-      .forEach((match) => {
-        groupsEl.appendChild(createMatchRow(match));
-      });
+      .sort((a, b) => compareMatches(a, b));
+
+    filteredMatches.forEach((match) => {
+      // Desktop table row
+      groupsEl.appendChild(createMatchRow(match));
+      // Mobile card
+      groupsMobileEl.appendChild(createMobileMatchCard(match));
+    });
   };
 
   /**
@@ -280,6 +332,7 @@
       const groupCard = standingsTemplate.content.cloneNode(true);
       groupCard.querySelector("h3").textContent = `Group ${groupLetter}`;
       const tbody = groupCard.querySelector("tbody");
+      const mobileContainer = groupCard.querySelector('[data-role="standings-mobile"]');
 
       const rows = WCP.getSortedRows(groups[groupLetter], groupLetter).slice(0, 4);
       const tieGroups = rows.reduce((acc, row) => {
@@ -290,6 +343,7 @@
       }, {});
 
       rows.forEach((row, index) => {
+        // Desktop table row
         const tr = document.createElement("tr");
         if (index < 2) {
           tr.className = "bg-emerald-50/60";
@@ -384,6 +438,33 @@
         tr.appendChild(gdCell);
         tr.appendChild(ptsCell);
         tbody.appendChild(tr);
+
+        // Mobile row
+        const mobileRow = document.createElement("div");
+        let mobileBgClass = "bg-white border-slate-100";
+        if (index < 2) {
+          mobileBgClass = "bg-emerald-50/60 border-l-2 border-l-emerald-400 border-slate-100";
+        } else if (index === 2) {
+          mobileBgClass = "bg-amber-50/60 border-l-2 border-l-amber-400 border-slate-100";
+        }
+        mobileRow.className = `flex items-center justify-between px-2 py-1.5 rounded border ${mobileBgClass}`;
+        mobileRow.innerHTML = `
+          <div class="flex items-center gap-1.5 flex-1 min-w-0">
+            <img class="h-3 w-5 rounded-sm border border-slate-200 object-cover flex-shrink-0" src="${row.team.flag_emoji || ""}" alt="${row.team.name} flag" />
+            <span class="text-xs font-medium text-slate-700 truncate">${row.team.name}</span>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0 ml-1 text-[10px]">
+            <div class="text-center">
+              <div class="text-slate-400 leading-none">GD</div>
+              <div class="text-slate-600 font-medium">${row.gd > 0 ? "+" : ""}${row.gd}</div>
+            </div>
+            <div class="text-center min-w-[1.25rem]">
+              <div class="text-slate-400 leading-none">Pts</div>
+              <div class="font-bold text-slate-900">${row.points}</div>
+            </div>
+          </div>
+        `;
+        mobileContainer.appendChild(mobileRow);
       });
 
       standingsEl.appendChild(groupCard);

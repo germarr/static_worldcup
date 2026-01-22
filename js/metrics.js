@@ -3,7 +3,7 @@
  * Fetches and displays Kalshi prediction market data
  */
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "https://aps.misquinielasonline.com";
 
 const fetchBtn = document.getElementById("fetch-rankings-btn");
 const btnText = document.getElementById("btn-text");

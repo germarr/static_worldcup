@@ -356,13 +356,15 @@ const createPickControls = (match, pickGroupEl, variant = "pill", onChangeCallba
   ];
 
   const pillClass =
-    variant === "grid"
-      ? "flex w-full items-center justify-center rounded-md border border-slate-200 bg-white px-2 py-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500 transition peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white"
-      : "inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500 transition peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white";
+    variant === "mobile"
+      ? "flex w-full items-center justify-center rounded-lg border-2 border-slate-200 bg-white px-3 py-3 text-xs font-bold uppercase tracking-wider text-slate-600 transition peer-checked:border-emerald-500 peer-checked:bg-emerald-500 peer-checked:text-white active:scale-95"
+      : variant === "grid"
+        ? "flex w-full items-center justify-center rounded-md border border-slate-200 bg-white px-2 py-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500 transition peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white"
+        : "inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500 transition peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white";
 
   options.forEach((option) => {
     const label = document.createElement("label");
-    label.className = variant === "grid" ? "cursor-pointer block" : "cursor-pointer";
+    label.className = variant === "grid" || variant === "mobile" ? "cursor-pointer block" : "cursor-pointer";
 
     const input = document.createElement("input");
     input.type = "radio";
@@ -402,7 +404,7 @@ const getTeamAbbr = (team) => {
 /**
  * Load all data and initialize global state
  */
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "https://aps.misquinielasonline.com";
 
 const loadData = async () => {
   // Initialize compression (pre-load pako if native not supported)
