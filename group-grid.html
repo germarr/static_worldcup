@@ -121,8 +121,8 @@
       </div>
 
       <section class="mx-auto mt-6 max-w-6xl space-y-4">
-        <!-- Mobile Card View (hidden on md+) -->
-        <div id="groups-mobile" class="md:hidden space-y-3"></div>
+        <!-- Mobile Compact List View (hidden on md+) -->
+        <div id="groups-mobile" class="md:hidden rounded-xl border border-slate-200 bg-white overflow-hidden"></div>
 
         <!-- Desktop Table View (hidden on mobile) -->
         <div class="hidden md:block rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-sm">
@@ -299,29 +299,26 @@
       </article>
     </template>
 
-    <template id="mobile-match-card-template">
-      <article class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
-        <div class="flex items-center justify-between text-[11px] text-slate-400">
-          <div class="flex items-center gap-2">
-            <span data-role="group" class="rounded-full bg-slate-900 px-2 py-0.5 text-[10px] font-bold text-white"></span>
-            <span data-role="match-number" class="uppercase tracking-widest"></span>
-          </div>
-          <span data-role="date" class="font-medium text-slate-500"></span>
+    <template id="mobile-match-row-template">
+      <div class="flex items-center gap-1.5 bg-white border-b border-slate-100 px-3 py-2">
+        <!-- Home team -->
+        <div class="flex items-center gap-1.5 flex-1 min-w-0">
+          <img data-role="home-flag" class="h-4 w-6 rounded-sm border border-slate-200 object-cover flex-shrink-0" alt="" />
+          <span data-role="home-name" class="text-xs font-medium text-slate-700 truncate"></span>
         </div>
-        <div class="mt-3 flex items-center justify-between gap-3">
-          <div class="flex-1 text-center">
-            <img data-role="home-flag" class="mx-auto h-8 w-12 rounded-sm border border-slate-200 object-cover" alt="" />
-            <div data-role="home-name" class="mt-1 text-sm font-semibold text-slate-800 truncate"></div>
-          </div>
-          <div class="text-xs font-bold text-slate-300">VS</div>
-          <div class="flex-1 text-center">
-            <img data-role="away-flag" class="mx-auto h-8 w-12 rounded-sm border border-slate-200 object-cover" alt="" />
-            <div data-role="away-name" class="mt-1 text-sm font-semibold text-slate-800 truncate"></div>
-          </div>
+
+        <!-- Pick buttons -->
+        <div data-role="pick-group" class="flex gap-1 flex-shrink-0"></div>
+
+        <!-- Away team -->
+        <div class="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
+          <span data-role="away-name" class="text-xs font-medium text-slate-700 truncate text-right"></span>
+          <img data-role="away-flag" class="h-4 w-6 rounded-sm border border-slate-200 object-cover flex-shrink-0" alt="" />
         </div>
-        <div data-role="pick-group" class="mt-4 grid grid-cols-3 gap-2"></div>
-        <div data-role="status" class="mt-2 text-center text-[10px] uppercase tracking-widest"></div>
-      </article>
+
+        <!-- Pick status dot -->
+        <div data-role="pick-status" class="h-2 w-2 rounded-full flex-shrink-0 ml-1"></div>
+      </div>
     </template>
 
     <template id="knockout-template">

@@ -140,36 +140,27 @@
   };
 
   /**
-   * Create a mobile match card for the card view
+   * Create a compact mobile match row
    */
-  const mobileMatchCardTemplate = document.getElementById("mobile-match-card-template");
+  const mobileMatchRowTemplate = document.getElementById("mobile-match-row-template");
 
-  const createMobileMatchCard = (match) => {
-    const card = mobileMatchCardTemplate.content.cloneNode(true);
+  const createMobileMatchRow = (match) => {
+    const row = mobileMatchRowTemplate.content.cloneNode(true);
 
     const currentPick = WCP.picks[match.id];
-    const statusText = currentPick ? "Picked" : "Tap to pick";
-    const statusClass = currentPick
-      ? "text-emerald-600"
-      : "text-slate-400";
-
     const homeTeam = WCP.teamsById.get(match.home_team_id) || { name: "TBD", flag_emoji: "" };
     const awayTeam = WCP.teamsById.get(match.away_team_id) || { name: "TBD", flag_emoji: "" };
 
-    card.querySelector('[data-role="group"]').textContent = match.group_letter || "-";
-    card.querySelector('[data-role="match-number"]').textContent = `#${match.match_number}`;
-    card.querySelector('[data-role="date"]').textContent = WCP.formatDate(match.scheduled_datetime);
+    row.querySelector('[data-role="home-flag"]').src = homeTeam.flag_emoji || "";
+    row.querySelector('[data-role="home-flag"]').alt = `${homeTeam.name} flag`;
+    row.querySelector('[data-role="home-name"]').textContent = homeTeam.name;
 
-    card.querySelector('[data-role="home-flag"]').src = homeTeam.flag_emoji || "";
-    card.querySelector('[data-role="home-flag"]').alt = `${homeTeam.name} flag`;
-    card.querySelector('[data-role="home-name"]').textContent = homeTeam.name;
+    row.querySelector('[data-role="away-flag"]').src = awayTeam.flag_emoji || "";
+    row.querySelector('[data-role="away-flag"]').alt = `${awayTeam.name} flag`;
+    row.querySelector('[data-role="away-name"]').textContent = awayTeam.name;
 
-    card.querySelector('[data-role="away-flag"]').src = awayTeam.flag_emoji || "";
-    card.querySelector('[data-role="away-flag"]').alt = `${awayTeam.name} flag`;
-    card.querySelector('[data-role="away-name"]').textContent = awayTeam.name;
-
-    const pickGroupEl = card.querySelector('[data-role="pick-group"]');
-    WCP.createPickControls(match, pickGroupEl, "mobile", () => {
+    const pickGroupEl = row.querySelector('[data-role="pick-group"]');
+    WCP.createPickControls(match, pickGroupEl, "compact", () => {
       WCP.updatePickSummary(pickSummaryEl, pickProgressEl);
       renderStandings();
       renderGroups();
@@ -177,11 +168,13 @@
       updateQRButtonVisibility();
     });
 
-    const statusEl = card.querySelector('[data-role="status"]');
-    statusEl.textContent = statusText;
-    statusEl.className = `mt-2 text-center text-[10px] uppercase tracking-widest ${statusClass}`;
+    // Update status dot
+    const statusDot = row.querySelector('[data-role="pick-status"]');
+    statusDot.className = currentPick
+      ? "h-2 w-2 rounded-full bg-emerald-400 flex-shrink-0 ml-1"
+      : "h-2 w-2 rounded-full bg-slate-200 flex-shrink-0 ml-1";
 
-    return card;
+    return row;
   };
 
   /**
@@ -198,11 +191,68 @@
       .filter((match) => currentGroupFilter === "all" || match.group_letter === currentGroupFilter)
       .sort((a, b) => compareMatches(a, b));
 
+    // Track separators for mobile view
+    let currentDateKey = null;
+    let currentGroupKey = null;
+
+    // If filtering by specific group, show group header at top
+    if (currentGroupFilter !== "all") {
+      const groupHeader = document.createElement("div");
+      groupHeader.className = "bg-slate-900 px-3 py-2 text-xs font-bold text-white";
+      groupHeader.textContent = `Group ${currentGroupFilter}`;
+      groupsMobileEl.appendChild(groupHeader);
+    }
+
     filteredMatches.forEach((match) => {
       // Desktop table row
       groupsEl.appendChild(createMatchRow(match));
-      // Mobile card
-      groupsMobileEl.appendChild(createMobileMatchCard(match));
+
+      // Mobile: Add separators based on sort/filter mode
+      if (currentGroupFilter === "all") {
+        if (currentSort === "match") {
+          // Date separators when sorting by date
+          const matchDate = new Date(match.scheduled_datetime);
+          const dateKey = matchDate.toDateString();
+
+          if (dateKey !== currentDateKey) {
+            currentDateKey = dateKey;
+            const separator = document.createElement("div");
+            separator.className = "bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-slate-500 border-b border-slate-200";
+            separator.textContent = new Intl.DateTimeFormat("en-US", {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+            }).format(matchDate);
+            groupsMobileEl.appendChild(separator);
+          }
+        } else if (currentSort === "group") {
+          // Group separators when sorting by group
+          if (match.group_letter !== currentGroupKey) {
+            currentGroupKey = match.group_letter;
+            const separator = document.createElement("div");
+            separator.className = "bg-slate-900 px-3 py-2 text-xs font-bold text-white";
+            separator.textContent = `Group ${match.group_letter}`;
+            groupsMobileEl.appendChild(separator);
+          }
+        } else if (currentSort === "stadium") {
+          // Stadium separators when sorting by stadium
+          const stadium = WCP.stadiumsById.get(match.stadium_id);
+          const stadiumKey = stadium?.id || "tbd";
+
+          if (stadiumKey !== currentGroupKey) {
+            currentGroupKey = stadiumKey;
+            const separator = document.createElement("div");
+            separator.className = "bg-slate-800 px-3 py-2 text-xs font-bold text-white";
+            separator.innerHTML = stadium
+              ? `<div>${stadium.name}</div><div class="text-[10px] font-normal text-slate-400">${stadium.city}, ${stadium.country}</div>`
+              : "Stadium TBD";
+            groupsMobileEl.appendChild(separator);
+          }
+        }
+      }
+
+      // Mobile compact row
+      groupsMobileEl.appendChild(createMobileMatchRow(match));
     });
   };
 
