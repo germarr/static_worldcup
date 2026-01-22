@@ -60,28 +60,56 @@ const isGroupPredictionCorrect = (match, picks) => {
 };
 
 /**
- * Get knockout match key for picks lookup
+ * Find user's knockout pick by matching team IDs from simulated bracket
+ * This handles the case where simulated bracket positions differ from actual match positions
  */
-const getKnockoutMatchKey = (match, knockoutMatchesByRound) => {
-  const roundKey = roundKeyMap[match.round];
-  if (!roundKey) return null;
+const findKnockoutPickByTeams = (match, picks, simulatedBracket) => {
+  if (!picks?.knockout || !simulatedBracket) return null;
 
-  const roundMatches = knockoutMatchesByRound[match.round] || [];
-  const sortedMatches = [...roundMatches].sort((a, b) => a.match_number - b.match_number);
-  const matchIndex = sortedMatches.findIndex((m) => m.id === match.id);
+  const homeTeamId = match.home_team_id;
+  const awayTeamId = match.away_team_id;
 
-  if (matchIndex === -1) return null;
-  return `${roundKey}-${matchIndex + 1}`;
+  // If teams aren't determined yet, can't match
+  if (!homeTeamId || !awayTeamId) return null;
+
+  // Search through all simulated bracket rounds to find a match with the same teams
+  const allSimulatedMatches = [
+    ...(simulatedBracket.roundOf32 || []),
+    ...(simulatedBracket.roundOf16 || []),
+    ...(simulatedBracket.quarterfinals || []),
+    ...(simulatedBracket.semifinals || []),
+    ...(simulatedBracket.final || []),
+    ...(simulatedBracket.thirdPlace || []),
+  ];
+
+  for (const simMatch of allSimulatedMatches) {
+    const simHomeId = simMatch.home?.team?.id;
+    const simAwayId = simMatch.away?.team?.id;
+
+    // Check if teams match (in either order)
+    const teamsMatch =
+      (simHomeId === homeTeamId && simAwayId === awayTeamId) ||
+      (simHomeId === awayTeamId && simAwayId === homeTeamId);
+
+    if (teamsMatch && simMatch.key) {
+      const userPickTeamId = picks.knockout[simMatch.key];
+      if (userPickTeamId) {
+        return userPickTeamId;
+      }
+    }
+  }
+
+  return null;
 };
 
 /**
- * Check if knockout prediction is correct
+ * Check if knockout prediction is correct using team-based matching
  */
-const isKnockoutPredictionCorrect = (match, picks, matchKey) => {
+const isKnockoutPredictionCorrect = (match, picks, simulatedBracket) => {
   if (match.status !== "completed") return null;
   if (!match.actual_winner_team_id) return null;
 
-  const userPick = picks?.knockout?.[matchKey];
+  const userPick = findKnockoutPickByTeams(match, picks, simulatedBracket);
   if (!userPick) return false;
 
   return userPick === match.actual_winner_team_id;
@@ -94,12 +122,9 @@ const calculateScores = (matches, picks) => {
   const groupMatches = matches.filter((m) => m.round === "group_stage");
   const knockoutMatches = matches.filter((m) => m.round !== "group_stage");
 
-  // Group knockout matches by round for key calculation
-  const knockoutMatchesByRound = {};
-  knockoutMatches.forEach((m) => {
-    if (!knockoutMatchesByRound[m.round]) knockoutMatchesByRound[m.round] = [];
-    knockoutMatchesByRound[m.round].push(m);
-  });
+  // Build simulated bracket for team-based matching
+  const groups = WCP.buildStandings();
+  const simulatedBracket = WCP.buildKnockoutBracket(groups);
 
   let groupPoints = 0;
   let groupCorrect = 0;
@@ -121,12 +146,11 @@ const calculateScores = (matches, picks) => {
     }
   });
 
-  // Calculate knockout scores
+  // Calculate knockout scores using team-based matching
   knockoutMatches.forEach((match) => {
     if (match.status === "completed" && match.actual_winner_team_id) {
       knockoutCompleted++;
-      const matchKey = getKnockoutMatchKey(match, knockoutMatchesByRound);
-      const isCorrect = isKnockoutPredictionCorrect(match, picks, matchKey);
+      const isCorrect = isKnockoutPredictionCorrect(match, picks, simulatedBracket);
       if (isCorrect) {
         knockoutPoints += 2;
         knockoutCorrect++;
@@ -301,6 +325,10 @@ const renderKnockoutResults = (matches, picks, teamsById) => {
     knockoutMatchesByRound[m.round].push(m);
   });
 
+  // Build simulated bracket for team-based matching
+  const groups = WCP.buildStandings();
+  const simulatedBracket = WCP.buildKnockoutBracket(groups);
+
   // Order of rounds for display
   const roundOrder = [
     "knockout_stage_roundof32",
@@ -330,9 +358,9 @@ const renderKnockoutResults = (matches, picks, teamsById) => {
 
     const sortedMatches = [...roundMatches].sort((a, b) => a.match_number - b.match_number);
 
-    sortedMatches.forEach((match, index) => {
-      const matchKey = `${roundKey}-${index + 1}`;
-      const isCorrect = isKnockoutPredictionCorrect(match, picks, matchKey);
+    sortedMatches.forEach((match) => {
+      // Use team-based matching to find user's pick
+      const isCorrect = isKnockoutPredictionCorrect(match, picks, simulatedBracket);
       const status = getMatchStatus(match, isCorrect);
 
       // Apply filter
@@ -353,7 +381,9 @@ const renderKnockoutResults = (matches, picks, teamsById) => {
       const homeTeam = teamsById.get(match.home_team_id);
       const awayTeam = teamsById.get(match.away_team_id);
       const winnerTeam = match.actual_winner_team_id ? teamsById.get(match.actual_winner_team_id) : null;
-      const userPickTeam = picks?.knockout?.[matchKey] ? teamsById.get(picks.knockout[matchKey]) : null;
+      // Use team-based matching to find user's pick
+      const userPickTeamId = findKnockoutPickByTeams(match, picks, simulatedBracket);
+      const userPickTeam = userPickTeamId ? teamsById.get(userPickTeamId) : null;
 
       card.querySelector('[data-role="round"]').textContent = `Match ${match.match_number}`;
 

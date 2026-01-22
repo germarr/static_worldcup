@@ -24,6 +24,17 @@
     <meta property="twitter:image" content="https://misquinielasonline.com/og-image.jpg" />
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        safelist: [
+          'peer-checked:bg-slate-900',
+          'peer-checked:border-slate-900',
+          'peer-checked:text-white',
+          'peer-checked:bg-emerald-500',
+          'peer-checked:border-emerald-500',
+        ]
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -262,6 +273,7 @@
     </footer>
 
     <script src="js/vendor/jsQR.min.js"></script>
+    <script src="js/vendor/pako.min.js"></script>
     <script src="js/compression.js"></script>
     <script src="js/shared.js"></script>
     <script src="js/landing.js"></script>

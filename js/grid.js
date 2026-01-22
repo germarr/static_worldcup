@@ -419,11 +419,14 @@
         }
 
         const teamCell = document.createElement("td");
-        teamCell.className = "px-3 py-2 font-medium";
+        teamCell.className = "px-2 py-1.5 font-medium";
+        const teamCode = row.team.country_code === "TBD" ? row.team.name : row.team.country_code;
         teamCell.innerHTML = `
-          <div class="flex flex-wrap items-center gap-2">
-            <img class="h-4 w-6 rounded-sm border border-slate-200 object-cover" src="${row.team.flag_emoji || ""}" alt="${row.team.name} flag" />
-            <span>${row.team.name}</span>
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-1.5">
+              <img class="h-4 w-6 rounded-sm border border-slate-200 object-cover" src="${row.team.flag_emoji || ""}" alt="${row.team.name} flag" />
+              <span title="${row.team.name}">${teamCode}</span>
+            </div>
           </div>
         `;
 
@@ -432,12 +435,12 @@
           const orderIndex = orderGroup.indexOf(row.team.id);
           const select = document.createElement("select");
           select.className =
-            "ml-2 rounded-full border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500";
+            "rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[9px] font-medium text-slate-500";
           select.title = "Tie-break order";
           for (let optionIndex = 0; optionIndex < orderGroup.length; optionIndex += 1) {
             const option = document.createElement("option");
             option.value = optionIndex + 1;
-            option.textContent = `Order ${optionIndex + 1}`;
+            option.textContent = `#${optionIndex + 1}`;
             if (optionIndex === orderIndex) option.selected = true;
             select.appendChild(option);
           }
@@ -453,31 +456,31 @@
             renderStandings();
             renderKnockout();
           });
-          teamCell.querySelector("div")?.appendChild(select);
+          teamCell.querySelector(".flex-col")?.appendChild(select);
         }
 
         const playedCell = document.createElement("td");
-        playedCell.className = "px-3 py-2 text-center";
+        playedCell.className = "px-1.5 py-1.5 text-center";
         playedCell.textContent = row.played;
 
         const wdlCell = document.createElement("td");
-        wdlCell.className = "px-3 py-2 text-center";
+        wdlCell.className = "px-2 py-1.5 text-center whitespace-nowrap";
         wdlCell.textContent = `${row.won}-${row.drawn}-${row.lost}`;
 
         const gfCell = document.createElement("td");
-        gfCell.className = "px-3 py-2 text-center";
+        gfCell.className = "px-1.5 py-1.5 text-center";
         gfCell.textContent = row.gf;
 
         const gaCell = document.createElement("td");
-        gaCell.className = "px-3 py-2 text-center";
+        gaCell.className = "px-1.5 py-1.5 text-center";
         gaCell.textContent = row.ga;
 
         const gdCell = document.createElement("td");
-        gdCell.className = "px-3 py-2 text-center";
+        gdCell.className = "px-1.5 py-1.5 text-center";
         gdCell.textContent = row.gd;
 
         const ptsCell = document.createElement("td");
-        ptsCell.className = "px-3 py-2 text-center font-semibold text-slate-900";
+        ptsCell.className = "px-1.5 py-1.5 text-center font-semibold text-slate-900";
         ptsCell.textContent = row.points;
 
         tr.appendChild(teamCell);
@@ -588,7 +591,13 @@
 
       input.addEventListener("change", () => {
         if (input.checked && option.id) {
+          // Ensure knockout object exists
+          if (!WCP.picks.knockout) {
+            WCP.picks.knockout = {};
+          }
           WCP.picks.knockout[match.key] = option.id;
+          console.log("Knockout pick saved:", match.key, "=", option.id);
+          console.log("Current knockout picks:", JSON.stringify(WCP.picks.knockout));
           WCP.persistPicks();
           renderKnockout();
           updateQRButtonVisibility();
@@ -779,6 +788,39 @@
   };
 
   /**
+   * Randomize entire tournament (group stage + knockout)
+   */
+  const randomizeTournament = () => {
+    randomizeGroupPicks();
+    randomizeKnockoutPicks();
+  };
+
+  /**
+   * Clear all picks (group stage + knockout)
+   */
+  const clearAllPicks = () => {
+    // Clear group stage picks
+    WCP.matches
+      .filter((match) => match.round === "group_stage")
+      .forEach((match) => {
+        delete WCP.picks[match.id];
+      });
+
+    // Clear knockout picks
+    WCP.picks.knockout = {};
+
+    // Clear URL hash
+    window.location.hash = "";
+
+    WCP.persistPicks();
+    renderStandings();
+    renderGroups();
+    renderKnockout();
+    WCP.updatePickSummary(pickSummaryEl, pickProgressEl);
+    updateQRButtonVisibility();
+  };
+
+  /**
    * Update filter button styles
    */
   const updateFilterButtons = () => {
@@ -935,6 +977,10 @@
 
       const randomizeButton = document.getElementById("randomize-results");
       randomizeButton?.addEventListener("click", randomizeGroupPicks);
+      const randomizeTournamentButton = document.getElementById("randomize-tournament");
+      randomizeTournamentButton?.addEventListener("click", randomizeTournament);
+      const clearPicksButton = document.getElementById("clear-picks");
+      clearPicksButton?.addEventListener("click", clearAllPicks);
       randomizeKnockoutButton?.addEventListener("click", randomizeKnockoutPicks);
       printButton?.addEventListener("click", () => {
         const currentHash = window.location.hash;
@@ -966,6 +1012,23 @@
       // Initialize QR modal and show button if picks exist
       initQRModal();
       updateQRButtonVisibility();
+
+      // Hide filter pane when user scrolls to group standings
+      const groupFiltersEl = document.getElementById("group-filters");
+      const standingsSection = document.getElementById("standings-section");
+      if (groupFiltersEl && standingsSection) {
+        const updateFilterVisibility = () => {
+          const standingsTop = standingsSection.getBoundingClientRect().top;
+          const threshold = 100; // Hide when standings section is near top of viewport
+          if (standingsTop < threshold) {
+            groupFiltersEl.classList.add("opacity-0", "pointer-events-none");
+          } else {
+            groupFiltersEl.classList.remove("opacity-0", "pointer-events-none");
+          }
+        };
+        window.addEventListener("scroll", updateFilterVisibility, { passive: true });
+        updateFilterVisibility();
+      }
     } catch (error) {
       console.error("Failed to initialize:", error);
       statusEl.textContent = "Failed to load data.";
