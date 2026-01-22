@@ -119,7 +119,8 @@ const normalizePicks = (picksData) => {
 const loadPicksFromHash = async () => {
   const hash = window.location.hash.replace(/^#/, "");
   console.log("- loadPicksFromHash: raw hash =", window.location.hash);
-  console.log("- loadPicksFromHash: stripped hash =", hash);
+  console.log("- loadPicksFromHash: raw hash length =", window.location.hash.length);
+  console.log("- loadPicksFromHash: stripped hash =", hash.substring(0, 50) + "...");
   if (!hash.startsWith("p=")) {
     console.log("- loadPicksFromHash: hash does not start with 'p=', returning empty");
     return {};
@@ -129,14 +130,15 @@ const loadPicksFromHash = async () => {
   if (!encoded) return {};
   try {
     const decoded = await decodePicks(encoded);
-    console.log("- loadPicksFromHash: decoded picks =", decoded);
+    console.log("- loadPicksFromHash: decoded picks keys =", Object.keys(decoded));
+    console.log("- loadPicksFromHash: decoded knockout =", JSON.stringify(decoded.knockout || {}));
+    console.log("- loadPicksFromHash: knockout keys count =", Object.keys(decoded.knockout || {}).length);
     return decoded;
   } catch (error) {
     console.error("Failed to decode picks:", error);
-    // Clean up invalid URL hash to prevent ghost brackets
-    const baseUrl = `${window.location.pathname}${window.location.search}`;
-    history.replaceState(null, "", baseUrl);
-    console.log("- loadPicksFromHash: cleared invalid URL hash");
+    console.error("- Error details:", error.message, error.stack);
+    // DON'T clear URL hash - just return empty and let user try again
+    console.log("- loadPicksFromHash: returning empty picks due to error (NOT clearing URL)");
     return {};
   }
 };
@@ -152,6 +154,8 @@ const persistPicks = async () => {
   const groupPickKeys = Object.keys(picks || {}).filter((k) => !metadataKeys.includes(k));
   const hasGroupPicks = groupPickKeys.length > 0;
   const hasKnockoutPicks = Object.keys(knockoutPicks).length > 0;
+  console.log("persistPicks: groupPicks =", hasGroupPicks, ", knockoutPicks =", hasKnockoutPicks);
+  console.log("persistPicks: knockout object =", JSON.stringify(knockoutPicks));
   // Only persist if there are actual picks (thirdPlaceOrder and standingsOrder are derived metadata)
   const hasPicks = hasGroupPicks || hasKnockoutPicks;
   if (!hasPicks) {
@@ -160,6 +164,7 @@ const persistPicks = async () => {
     return;
   }
   const encoded = await encodePicks(picks);
+  console.log("persistPicks: saving to URL, encoded length =", encoded.length);
   history.replaceState(null, "", `${baseUrl}#p=${encoded}`);
   // Update nav links since replaceState doesn't trigger hashchange
   updateNavLinks();
@@ -356,13 +361,17 @@ const createPickControls = (match, pickGroupEl, variant = "pill", onChangeCallba
   ];
 
   const pillClass =
-    variant === "grid"
-      ? "flex w-full items-center justify-center rounded-md border border-slate-200 bg-white px-2 py-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500 transition peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white"
-      : "inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500 transition peer-checked:border-slate-900 peer-checked:bg-slate-900 peer-checked:text-white";
+    variant === "compact"
+      ? "flex items-center justify-center w-8 h-8 rounded border border-slate-200 bg-white text-[10px] font-bold uppercase text-slate-500 transition peer-checked:border-emerald-500 peer-checked:bg-emerald-500 peer-checked:text-white active:scale-95"
+      : variant === "mobile"
+        ? "flex w-full items-center justify-center rounded-lg border-2 border-slate-200 bg-white px-3 py-3 text-xs font-bold uppercase tracking-wider text-slate-600 transition peer-checked:border-emerald-500 peer-checked:bg-emerald-500 peer-checked:text-white active:scale-95"
+        : variant === "grid"
+          ? "flex w-full items-center justify-center rounded-md border border-slate-200 bg-white px-2 py-2 text-[10px] font-semibold uppercase tracking-widest text-slate-500 transition peer-checked:border-emerald-500 peer-checked:bg-emerald-500 peer-checked:text-white"
+          : "inline-flex items-center rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-slate-500 transition peer-checked:border-emerald-500 peer-checked:bg-emerald-500 peer-checked:text-white";
 
   options.forEach((option) => {
     const label = document.createElement("label");
-    label.className = variant === "grid" ? "cursor-pointer block" : "cursor-pointer";
+    label.className = variant === "grid" || variant === "mobile" || variant === "compact" ? "cursor-pointer block" : "cursor-pointer";
 
     const input = document.createElement("input");
     input.type = "radio";
@@ -436,11 +445,13 @@ const updateNavLinks = () => {
   if (!hash) return;
 
   // Update all navigation links and results buttons to preserve the hash
-  const links = document.querySelectorAll('nav a[href$=".html"], a#view-results-btn');
+  const links = document.querySelectorAll('nav a[href$=".html"], a#view-results-btn, nav a[href*=".html#"]');
   links.forEach((link) => {
     const href = link.getAttribute("href");
-    if (href && !href.includes("#")) {
-      link.setAttribute("href", href + hash);
+    if (href) {
+      // Remove any existing hash and add the current one
+      const baseHref = href.split("#")[0];
+      link.setAttribute("href", baseHref + hash);
     }
   });
 };

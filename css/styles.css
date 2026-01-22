@@ -404,3 +404,33 @@ table tbody tr.drag-over td {
   transform: translateY(-4px);
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
 }
+
+/* ========================================
+   Pick Button Styles (CSS Fallback for peer-checked)
+   ======================================== */
+
+/* Fallback for Tailwind peer-checked utilities on dynamically created elements */
+input[type="radio"].peer:checked + span {
+  background-color: #10b981 !important; /* emerald-500 */
+  border-color: #10b981 !important;
+  color: #ffffff !important;
+}
+
+/* ========================================
+   Mobile Match Card Styles
+   ======================================== */
+
+/* Mobile match card touch feedback */
+@media (max-width: 767px) {
+  #groups-mobile article {
+    transition: transform 150ms ease, box-shadow 150ms ease;
+  }
+
+  #groups-mobile article:active {
+    transform: scale(0.98);
+  }
+
+  #groups-mobile [data-role="pick-group"] label {
+    min-height: 44px;
+  }
+}

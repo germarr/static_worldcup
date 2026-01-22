@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -24,6 +24,17 @@
     <meta property="twitter:image" content="https://misquinielasonline.com/og-image.jpg" />
 
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        safelist: [
+          'peer-checked:bg-slate-900',
+          'peer-checked:border-slate-900',
+          'peer-checked:text-white',
+          'peer-checked:bg-emerald-500',
+          'peer-checked:border-emerald-500',
+        ]
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -70,8 +81,31 @@
               class="no-print rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-600 transition hover:-translate-y-0.5 hover:border-slate-300 hover:shadow-sm"
               type="button"
             >
-              Randomize Picks
+              Randomize Group Picks
             </button>
+            <button
+              id="randomize-tournament"
+              class="no-print rounded-full border border-emerald-500 bg-emerald-500 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-white transition hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-sm"
+              type="button"
+            >
+              Randomize Tournament
+            </button>
+            <button
+              id="clear-picks"
+              class="no-print rounded-full border border-red-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-red-500 transition hover:-translate-y-0.5 hover:border-red-300 hover:bg-red-50 hover:shadow-sm"
+              type="button"
+            >
+              Clear All Picks
+            </button>
+            <a
+              href="#knockout"
+              class="no-print inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-slate-100 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-600 transition hover:-translate-y-0.5 hover:border-slate-400 hover:bg-slate-200 hover:shadow-sm"
+            >
+              Knockout
+              <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+              </svg>
+            </a>
           </div>
         </div>
         <div class="space-y-2">
@@ -92,7 +126,7 @@
 
       <div
         id="group-filters"
-        class="sticky top-0 z-20 mx-auto max-w-6xl rounded-2xl border border-slate-200 bg-white/95 p-3 text-xs uppercase tracking-widest text-slate-500 shadow-md backdrop-blur-sm no-print mt-4"
+        class="sticky top-0 z-20 mx-auto max-w-6xl rounded-2xl border border-slate-200 bg-white/95 p-3 text-xs uppercase tracking-widest text-slate-500 shadow-md backdrop-blur-sm no-print mt-4 transition-opacity duration-300"
       >
         <div class="flex flex-wrap items-center gap-2">
           <span class="text-[10px] font-semibold text-slate-400">Sort by</span>
@@ -121,7 +155,11 @@
       </div>
 
       <section class="mx-auto mt-6 max-w-6xl space-y-4">
-        <div class="rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-sm">
+        <!-- Mobile Compact List View (hidden on md+) -->
+        <div id="groups-mobile" class="md:hidden rounded-xl border border-slate-200 bg-white overflow-hidden"></div>
+
+        <!-- Desktop Table View (hidden on mobile) -->
+        <div class="hidden md:block rounded-2xl border border-slate-200 bg-white/70 p-4 shadow-sm">
           <div class="overflow-x-auto">
             <table class="w-full min-w-[860px] text-left text-xs">
               <thead class="bg-slate-50 text-[11px] uppercase tracking-widest text-slate-400">
@@ -145,7 +183,7 @@
       </section>
       
 
-      <section class="mx-auto mt-10 max-w-6xl space-y-4">
+      <section id="standings-section" class="mx-auto mt-10 max-w-6xl space-y-4">
         <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <h2 class="text-2xl font-semibold">Group Standings</h2>
@@ -163,11 +201,11 @@
           </span>
         </div>
 
-        <div id="standings" class="grid gap-4 md:grid-cols-2 xl:grid-cols-3"></div>
+        <div id="standings" class="grid grid-cols-2 gap-2 md:gap-4 xl:grid-cols-3"></div>
       </section>
       
 
-      <section class="mx-auto mt-12 max-w-6xl space-y-4">
+      <section id="third-place-section" class="mx-auto mt-12 max-w-6xl space-y-4">
         <div class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
           <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <div>
@@ -178,8 +216,8 @@
             </div>
             <span class="rounded-full bg-slate-100 px-3 py-1 text-[11px] uppercase tracking-widest text-slate-500">Top 8 Advance</span>
           </div>
-          <div class="mt-4 overflow-hidden rounded-xl border border-slate-100">
-            <table class="w-full text-left text-xs">
+          <div class="mt-4 overflow-x-auto rounded-xl border border-slate-100">
+            <table class="w-full min-w-[400px] text-left text-xs">
               <thead class="bg-slate-50 text-[11px] uppercase tracking-widest text-slate-400">
                 <tr>
                   <th class="px-3 py-2 text-center">Ranking</th>
@@ -265,29 +303,56 @@
     </main>
 
     <template id="standings-template">
-      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <article class="rounded-2xl border border-slate-200 bg-white p-3 md:p-4 shadow-sm">
         <div class="flex items-center justify-between">
-          <h3 class="text-lg font-semibold"></h3>
-          <span class="rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-emerald-700">Top 4</span>
+          <h3 class="text-base md:text-lg font-semibold"></h3>
+          <span class="hidden md:inline-block rounded-full bg-emerald-100 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-emerald-700">Top 4</span>
         </div>
-        <div class="mt-4 overflow-hidden rounded-xl border border-slate-100">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-slate-50 text-[11px] uppercase tracking-widest text-slate-400">
+
+        <!-- Mobile View (hidden on md+) -->
+        <div class="md:hidden mt-3 space-y-1" data-role="standings-mobile"></div>
+
+        <!-- Desktop Table View (hidden on mobile) -->
+        <div class="hidden md:block mt-4 overflow-x-auto rounded-xl border border-slate-100">
+          <table class="w-full text-left text-[11px]">
+            <thead class="bg-slate-50 text-[10px] uppercase tracking-wider text-slate-400">
               <tr>
-                <th class="px-3 py-2">Team</th>
-                <th class="px-3 py-2 text-center">P</th>
-                <th class="px-3 py-2 text-center">W-D-L</th>
-                <th class="px-3 py-2 text-center">GF</th>
-                <th class="px-3 py-2 text-center">GA</th>
-                <th class="px-3 py-2 text-center">GD</th>
-                <th class="px-3 py-2 text-center">Pts</th>
+                <th class="px-2 py-1.5">Team</th>
+                <th class="px-1.5 py-1.5 text-center">P</th>
+                <th class="px-2 py-1.5 text-center whitespace-nowrap">W-D-L</th>
+                <th class="px-1.5 py-1.5 text-center">GF</th>
+                <th class="px-1.5 py-1.5 text-center">GA</th>
+                <th class="px-1.5 py-1.5 text-center">GD</th>
+                <th class="px-1.5 py-1.5 text-center">Pts</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-slate-100 text-slate-700"></tbody>
           </table>
         </div>
-        <p class="mt-3 text-[11px] text-slate-400">Sorted by points, goal difference, goals for.</p>
+        <p class="hidden md:block mt-3 text-[11px] text-slate-400">Sorted by points, goal difference, goals for.</p>
       </article>
+    </template>
+
+    <template id="mobile-match-row-template">
+      <div class="flex items-center gap-1.5 bg-white border-b border-slate-100 px-3 py-2">
+        <!-- Home team -->
+        <div class="flex items-center gap-1.5 flex-1 min-w-0">
+          <img data-role="home-flag" class="h-4 w-6 rounded-sm border border-slate-200 object-cover flex-shrink-0" alt="" />
+          <span data-role="home-name" class="text-xs font-medium text-slate-700 truncate"></span>
+        </div>
+
+        <!-- Pick buttons -->
+        <div data-role="pick-group" class="flex gap-1 flex-shrink-0"></div>
+
+        <!-- Away team -->
+        <div class="flex items-center gap-1.5 flex-1 min-w-0 justify-end">
+          <span data-role="away-name" class="text-xs font-medium text-slate-700 truncate text-right"></span>
+          <img data-role="away-flag" class="h-4 w-6 rounded-sm border border-slate-200 object-cover flex-shrink-0" alt="" />
+        </div>
+
+        <!-- Pick status dot -->
+        <div data-role="pick-status" class="h-2 w-2 rounded-full flex-shrink-0 ml-1"></div>
+      </div>
     </template>
 
     <template id="knockout-template">
@@ -353,6 +418,7 @@
     </div>
 
     <script src="js/vendor/qrcode.min.js"></script>
+    <script src="js/vendor/pako.min.js"></script>
     <script src="js/compression.js"></script>
     <script src="js/shared.js"></script>
     <script src="js/grid.js"></script>

@@ -140,18 +140,120 @@
   };
 
   /**
+   * Create a compact mobile match row
+   */
+  const mobileMatchRowTemplate = document.getElementById("mobile-match-row-template");
+
+  const createMobileMatchRow = (match) => {
+    const row = mobileMatchRowTemplate.content.cloneNode(true);
+
+    const currentPick = WCP.picks[match.id];
+    const homeTeam = WCP.teamsById.get(match.home_team_id) || { name: "TBD", flag_emoji: "" };
+    const awayTeam = WCP.teamsById.get(match.away_team_id) || { name: "TBD", flag_emoji: "" };
+
+    row.querySelector('[data-role="home-flag"]').src = homeTeam.flag_emoji || "";
+    row.querySelector('[data-role="home-flag"]').alt = `${homeTeam.name} flag`;
+    row.querySelector('[data-role="home-name"]').textContent = homeTeam.name;
+
+    row.querySelector('[data-role="away-flag"]').src = awayTeam.flag_emoji || "";
+    row.querySelector('[data-role="away-flag"]').alt = `${awayTeam.name} flag`;
+    row.querySelector('[data-role="away-name"]').textContent = awayTeam.name;
+
+    const pickGroupEl = row.querySelector('[data-role="pick-group"]');
+    WCP.createPickControls(match, pickGroupEl, "compact", () => {
+      WCP.updatePickSummary(pickSummaryEl, pickProgressEl);
+      renderStandings();
+      renderGroups();
+      renderKnockout();
+      updateQRButtonVisibility();
+    });
+
+    // Update status dot
+    const statusDot = row.querySelector('[data-role="pick-status"]');
+    statusDot.className = currentPick
+      ? "h-2 w-2 rounded-full bg-emerald-400 flex-shrink-0 ml-1"
+      : "h-2 w-2 rounded-full bg-slate-200 flex-shrink-0 ml-1";
+
+    return row;
+  };
+
+  /**
    * Render groups as a grid table
    */
+  const groupsMobileEl = document.getElementById("groups-mobile");
+
   const renderGroups = () => {
     groupsEl.innerHTML = "";
+    groupsMobileEl.innerHTML = "";
 
-    WCP.matches
+    const filteredMatches = WCP.matches
       .filter((match) => match.round === "group_stage")
       .filter((match) => currentGroupFilter === "all" || match.group_letter === currentGroupFilter)
-      .sort((a, b) => compareMatches(a, b))
-      .forEach((match) => {
-        groupsEl.appendChild(createMatchRow(match));
-      });
+      .sort((a, b) => compareMatches(a, b));
+
+    // Track separators for mobile view
+    let currentDateKey = null;
+    let currentGroupKey = null;
+
+    // If filtering by specific group, show group header at top
+    if (currentGroupFilter !== "all") {
+      const groupHeader = document.createElement("div");
+      groupHeader.className = "bg-slate-900 px-3 py-2 text-xs font-bold text-white";
+      groupHeader.textContent = `Group ${currentGroupFilter}`;
+      groupsMobileEl.appendChild(groupHeader);
+    }
+
+    filteredMatches.forEach((match) => {
+      // Desktop table row
+      groupsEl.appendChild(createMatchRow(match));
+
+      // Mobile: Add separators based on sort/filter mode
+      if (currentGroupFilter === "all") {
+        if (currentSort === "match") {
+          // Date separators when sorting by date
+          const matchDate = new Date(match.scheduled_datetime);
+          const dateKey = matchDate.toDateString();
+
+          if (dateKey !== currentDateKey) {
+            currentDateKey = dateKey;
+            const separator = document.createElement("div");
+            separator.className = "bg-slate-100 px-3 py-1.5 text-[11px] font-semibold text-slate-500 border-b border-slate-200";
+            separator.textContent = new Intl.DateTimeFormat("en-US", {
+              weekday: "short",
+              month: "short",
+              day: "numeric",
+            }).format(matchDate);
+            groupsMobileEl.appendChild(separator);
+          }
+        } else if (currentSort === "group") {
+          // Group separators when sorting by group
+          if (match.group_letter !== currentGroupKey) {
+            currentGroupKey = match.group_letter;
+            const separator = document.createElement("div");
+            separator.className = "bg-slate-900 px-3 py-2 text-xs font-bold text-white";
+            separator.textContent = `Group ${match.group_letter}`;
+            groupsMobileEl.appendChild(separator);
+          }
+        } else if (currentSort === "stadium") {
+          // Stadium separators when sorting by stadium
+          const stadium = WCP.stadiumsById.get(match.stadium_id);
+          const stadiumKey = stadium?.id || "tbd";
+
+          if (stadiumKey !== currentGroupKey) {
+            currentGroupKey = stadiumKey;
+            const separator = document.createElement("div");
+            separator.className = "bg-slate-800 px-3 py-2 text-xs font-bold text-white";
+            separator.innerHTML = stadium
+              ? `<div>${stadium.name}</div><div class="text-[10px] font-normal text-slate-400">${stadium.city}, ${stadium.country}</div>`
+              : "Stadium TBD";
+            groupsMobileEl.appendChild(separator);
+          }
+        }
+      }
+
+      // Mobile compact row
+      groupsMobileEl.appendChild(createMobileMatchRow(match));
+    });
   };
 
   /**
@@ -280,6 +382,7 @@
       const groupCard = standingsTemplate.content.cloneNode(true);
       groupCard.querySelector("h3").textContent = `Group ${groupLetter}`;
       const tbody = groupCard.querySelector("tbody");
+      const mobileContainer = groupCard.querySelector('[data-role="standings-mobile"]');
 
       const rows = WCP.getSortedRows(groups[groupLetter], groupLetter).slice(0, 4);
       const tieGroups = rows.reduce((acc, row) => {
@@ -290,6 +393,7 @@
       }, {});
 
       rows.forEach((row, index) => {
+        // Desktop table row
         const tr = document.createElement("tr");
         if (index < 2) {
           tr.className = "bg-emerald-50/60";
@@ -315,11 +419,14 @@
         }
 
         const teamCell = document.createElement("td");
-        teamCell.className = "px-3 py-2 font-medium";
+        teamCell.className = "px-2 py-1.5 font-medium";
+        const teamCode = row.team.country_code === "TBD" ? row.team.name : row.team.country_code;
         teamCell.innerHTML = `
-          <div class="flex flex-wrap items-center gap-2">
-            <img class="h-4 w-6 rounded-sm border border-slate-200 object-cover" src="${row.team.flag_emoji || ""}" alt="${row.team.name} flag" />
-            <span>${row.team.name}</span>
+          <div class="flex flex-col gap-1">
+            <div class="flex items-center gap-1.5">
+              <img class="h-4 w-6 rounded-sm border border-slate-200 object-cover" src="${row.team.flag_emoji || ""}" alt="${row.team.name} flag" />
+              <span title="${row.team.name}">${teamCode}</span>
+            </div>
           </div>
         `;
 
@@ -328,12 +435,12 @@
           const orderIndex = orderGroup.indexOf(row.team.id);
           const select = document.createElement("select");
           select.className =
-            "ml-2 rounded-full border border-slate-200 bg-white px-2 py-1 text-[10px] font-semibold uppercase tracking-widest text-slate-500";
+            "rounded border border-slate-200 bg-white px-1.5 py-0.5 text-[9px] font-medium text-slate-500";
           select.title = "Tie-break order";
           for (let optionIndex = 0; optionIndex < orderGroup.length; optionIndex += 1) {
             const option = document.createElement("option");
             option.value = optionIndex + 1;
-            option.textContent = `Order ${optionIndex + 1}`;
+            option.textContent = `#${optionIndex + 1}`;
             if (optionIndex === orderIndex) option.selected = true;
             select.appendChild(option);
           }
@@ -349,31 +456,31 @@
             renderStandings();
             renderKnockout();
           });
-          teamCell.querySelector("div")?.appendChild(select);
+          teamCell.querySelector(".flex-col")?.appendChild(select);
         }
 
         const playedCell = document.createElement("td");
-        playedCell.className = "px-3 py-2 text-center";
+        playedCell.className = "px-1.5 py-1.5 text-center";
         playedCell.textContent = row.played;
 
         const wdlCell = document.createElement("td");
-        wdlCell.className = "px-3 py-2 text-center";
+        wdlCell.className = "px-2 py-1.5 text-center whitespace-nowrap";
         wdlCell.textContent = `${row.won}-${row.drawn}-${row.lost}`;
 
         const gfCell = document.createElement("td");
-        gfCell.className = "px-3 py-2 text-center";
+        gfCell.className = "px-1.5 py-1.5 text-center";
         gfCell.textContent = row.gf;
 
         const gaCell = document.createElement("td");
-        gaCell.className = "px-3 py-2 text-center";
+        gaCell.className = "px-1.5 py-1.5 text-center";
         gaCell.textContent = row.ga;
 
         const gdCell = document.createElement("td");
-        gdCell.className = "px-3 py-2 text-center";
+        gdCell.className = "px-1.5 py-1.5 text-center";
         gdCell.textContent = row.gd;
 
         const ptsCell = document.createElement("td");
-        ptsCell.className = "px-3 py-2 text-center font-semibold text-slate-900";
+        ptsCell.className = "px-1.5 py-1.5 text-center font-semibold text-slate-900";
         ptsCell.textContent = row.points;
 
         tr.appendChild(teamCell);
@@ -384,6 +491,33 @@
         tr.appendChild(gdCell);
         tr.appendChild(ptsCell);
         tbody.appendChild(tr);
+
+        // Mobile row
+        const mobileRow = document.createElement("div");
+        let mobileBgClass = "bg-white border-slate-100";
+        if (index < 2) {
+          mobileBgClass = "bg-emerald-50/60 border-l-2 border-l-emerald-400 border-slate-100";
+        } else if (index === 2) {
+          mobileBgClass = "bg-amber-50/60 border-l-2 border-l-amber-400 border-slate-100";
+        }
+        mobileRow.className = `flex items-center justify-between px-2 py-1.5 rounded border ${mobileBgClass}`;
+        mobileRow.innerHTML = `
+          <div class="flex items-center gap-1.5 flex-1 min-w-0">
+            <img class="h-3 w-5 rounded-sm border border-slate-200 object-cover flex-shrink-0" src="${row.team.flag_emoji || ""}" alt="${row.team.name} flag" />
+            <span class="text-xs font-medium text-slate-700 truncate">${row.team.name}</span>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0 ml-1 text-[10px]">
+            <div class="text-center">
+              <div class="text-slate-400 leading-none">GD</div>
+              <div class="text-slate-600 font-medium">${row.gd > 0 ? "+" : ""}${row.gd}</div>
+            </div>
+            <div class="text-center min-w-[1.25rem]">
+              <div class="text-slate-400 leading-none">Pts</div>
+              <div class="font-bold text-slate-900">${row.points}</div>
+            </div>
+          </div>
+        `;
+        mobileContainer.appendChild(mobileRow);
       });
 
       standingsEl.appendChild(groupCard);
@@ -457,7 +591,13 @@
 
       input.addEventListener("change", () => {
         if (input.checked && option.id) {
+          // Ensure knockout object exists
+          if (!WCP.picks.knockout) {
+            WCP.picks.knockout = {};
+          }
           WCP.picks.knockout[match.key] = option.id;
+          console.log("Knockout pick saved:", match.key, "=", option.id);
+          console.log("Current knockout picks:", JSON.stringify(WCP.picks.knockout));
           WCP.persistPicks();
           renderKnockout();
           updateQRButtonVisibility();
@@ -648,6 +788,39 @@
   };
 
   /**
+   * Randomize entire tournament (group stage + knockout)
+   */
+  const randomizeTournament = () => {
+    randomizeGroupPicks();
+    randomizeKnockoutPicks();
+  };
+
+  /**
+   * Clear all picks (group stage + knockout)
+   */
+  const clearAllPicks = () => {
+    // Clear group stage picks
+    WCP.matches
+      .filter((match) => match.round === "group_stage")
+      .forEach((match) => {
+        delete WCP.picks[match.id];
+      });
+
+    // Clear knockout picks
+    WCP.picks.knockout = {};
+
+    // Clear URL hash
+    window.location.hash = "";
+
+    WCP.persistPicks();
+    renderStandings();
+    renderGroups();
+    renderKnockout();
+    WCP.updatePickSummary(pickSummaryEl, pickProgressEl);
+    updateQRButtonVisibility();
+  };
+
+  /**
    * Update filter button styles
    */
   const updateFilterButtons = () => {
@@ -804,6 +977,10 @@
 
       const randomizeButton = document.getElementById("randomize-results");
       randomizeButton?.addEventListener("click", randomizeGroupPicks);
+      const randomizeTournamentButton = document.getElementById("randomize-tournament");
+      randomizeTournamentButton?.addEventListener("click", randomizeTournament);
+      const clearPicksButton = document.getElementById("clear-picks");
+      clearPicksButton?.addEventListener("click", clearAllPicks);
       randomizeKnockoutButton?.addEventListener("click", randomizeKnockoutPicks);
       printButton?.addEventListener("click", () => {
         const currentHash = window.location.hash;
@@ -835,6 +1012,23 @@
       // Initialize QR modal and show button if picks exist
       initQRModal();
       updateQRButtonVisibility();
+
+      // Hide filter pane when user scrolls to group standings
+      const groupFiltersEl = document.getElementById("group-filters");
+      const standingsSection = document.getElementById("standings-section");
+      if (groupFiltersEl && standingsSection) {
+        const updateFilterVisibility = () => {
+          const standingsTop = standingsSection.getBoundingClientRect().top;
+          const threshold = 100; // Hide when standings section is near top of viewport
+          if (standingsTop < threshold) {
+            groupFiltersEl.classList.add("opacity-0", "pointer-events-none");
+          } else {
+            groupFiltersEl.classList.remove("opacity-0", "pointer-events-none");
+          }
+        };
+        window.addEventListener("scroll", updateFilterVisibility, { passive: true });
+        updateFilterVisibility();
+      }
     } catch (error) {
       console.error("Failed to initialize:", error);
       statusEl.textContent = "Failed to load data.";
