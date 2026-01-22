@@ -3,7 +3,7 @@
  * Calculates head-to-head win probabilities from Kalshi prediction market data
  */
 
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "https://aps.misquinielasonline.com";
 
 // DOM Elements
 const statusText = document.getElementById("status-text");

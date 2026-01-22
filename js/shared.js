@@ -402,7 +402,7 @@ const getTeamAbbr = (team) => {
 /**
  * Load all data and initialize global state
  */
-const API_BASE_URL = "http://localhost:8000";
+const API_BASE_URL = "https://aps.misquinielasonline.com";
 
 const loadData = async () => {
   // Initialize compression (pre-load pako if native not supported)
