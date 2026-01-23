@@ -8,7 +8,7 @@ import requests
 from fastapi import FastAPI, HTTPException, Query, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import metrics
+from app.routers import metrics, teams
 
 app = FastAPI(title="World Cup 2026 API")
 
@@ -276,6 +276,7 @@ app.add_middleware(
 
 # Include routers
 app.include_router(metrics.router)
+app.include_router(teams.router)
 
 DATA_DIR = Path(__file__).parent / "data"
 

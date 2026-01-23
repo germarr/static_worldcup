@@ -114,12 +114,18 @@
             <div id="pick-progress" class="h-2 rounded-full bg-emerald-200" style="width: 0%"></div>
           </div>
         </div>
-        <div class="flex justify-center mt-4">
+        <div class="flex justify-center gap-3 mt-4 flex-wrap">
           <button id="qr-code-btn" class="hidden inline-flex items-center gap-2 rounded-full border border-emerald-600 bg-emerald-600 px-6 py-3 text-sm font-semibold uppercase tracking-widest text-white transition hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-md no-print" type="button">
             <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/>
             </svg>
             Get QR of your game
+          </button>
+          <button id="team-btn" class="hidden inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-6 py-3 text-sm font-semibold uppercase tracking-widest text-slate-700 transition hover:-translate-y-0.5 hover:border-slate-400 hover:shadow-md no-print" type="button">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+            </svg>
+            Create Team
           </button>
         </div>
       </section>
@@ -413,6 +419,97 @@
               Copy URL
             </span>
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Team Modal -->
+    <div id="team-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-sm">
+      <div class="mx-4 w-full max-w-md rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
+        <div class="flex items-center justify-between">
+          <h3 class="text-lg font-semibold text-slate-900">Create Team Pool</h3>
+          <button id="team-close-btn" class="rounded-full p-1 text-slate-400 transition hover:bg-slate-100 hover:text-slate-600" type="button">
+            <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+        <p class="mt-2 text-sm text-slate-500">Create a team pool to compete with friends. Share the team code and they can join with their own brackets.</p>
+
+        <div id="team-create-form" class="mt-4 space-y-4">
+          <div>
+            <label class="block text-xs font-medium text-slate-700">Team Name</label>
+            <input
+              type="text"
+              id="team-name-input"
+              placeholder="e.g., Office Pool 2026"
+              maxlength="50"
+              class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-slate-700">Your Display Name</label>
+            <input
+              type="text"
+              id="team-creator-name-input"
+              placeholder="Your name in the leaderboard"
+              maxlength="30"
+              class="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+            />
+          </div>
+          <div class="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+            Your current bracket will be submitted with the team. Make sure you've made your picks!
+          </div>
+          <button
+            id="team-create-btn"
+            class="w-full rounded-full border border-emerald-600 bg-emerald-600 px-4 py-2.5 text-sm font-semibold uppercase tracking-widest text-white transition hover:-translate-y-0.5 hover:bg-emerald-700 hover:shadow-sm"
+            type="button"
+          >
+            Create Team
+          </button>
+        </div>
+
+        <!-- Success state (hidden by default) -->
+        <div id="team-success" class="mt-4 hidden">
+          <div class="rounded-lg border border-emerald-200 bg-emerald-50 p-4 text-center">
+            <svg class="mx-auto h-10 w-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <h4 class="mt-2 font-semibold text-emerald-900">Team Created!</h4>
+            <p class="mt-1 text-sm text-emerald-700">Share the QR code or link with friends to invite them.</p>
+          </div>
+
+          <div id="team-success-qr" class="mt-4 flex justify-center"></div>
+
+          <div class="mt-4">
+            <label class="block text-xs font-medium text-slate-600">Team Code</label>
+            <div class="mt-1 flex gap-2">
+              <input
+                type="text"
+                id="team-code-result"
+                readonly
+                class="flex-1 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-mono"
+              />
+              <button
+                id="team-copy-code-btn"
+                class="rounded-lg border border-slate-200 bg-white px-3 py-2 text-slate-600 transition hover:bg-slate-50"
+                type="button"
+              >
+                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="mt-4 flex gap-2">
+            <button id="team-download-qr-btn" class="flex-1 rounded-full border border-slate-200 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-widest text-slate-600 transition hover:-translate-y-0.5 hover:shadow-sm" type="button">
+              Download QR
+            </button>
+            <a id="team-view-btn" href="#" class="flex-1 rounded-full border border-emerald-500 bg-emerald-500 px-4 py-2 text-center text-xs font-semibold uppercase tracking-widest text-white transition hover:-translate-y-0.5 hover:bg-emerald-600 hover:shadow-sm">
+              View Team
+            </a>
+          </div>
         </div>
       </div>
     </div>

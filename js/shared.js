@@ -463,6 +463,83 @@ window.addEventListener("hashchange", updateNavLinks);
 document.addEventListener("DOMContentLoaded", updateNavLinks);
 
 
+// --- Team Pool Utilities ---
+
+/**
+ * Get stored member token for a team
+ */
+const getTeamMemberToken = (teamCode) => {
+  return localStorage.getItem(`team_${teamCode}_token`);
+};
+
+/**
+ * Store member token for a team
+ */
+const setTeamMemberToken = (teamCode, token) => {
+  localStorage.setItem(`team_${teamCode}_token`, token);
+};
+
+/**
+ * Get stored creator token for a team
+ */
+const getTeamCreatorToken = (teamCode) => {
+  return localStorage.getItem(`team_${teamCode}_creator`);
+};
+
+/**
+ * Store creator token for a team
+ */
+const setTeamCreatorToken = (teamCode, token) => {
+  localStorage.setItem(`team_${teamCode}_creator`, token);
+};
+
+/**
+ * Get list of teams user has joined
+ * Returns array of { code, name, displayName, isCreator }
+ */
+const getMyTeams = () => {
+  try {
+    return JSON.parse(localStorage.getItem('myTeams') || '[]');
+  } catch {
+    return [];
+  }
+};
+
+/**
+ * Add a team to user's team list
+ */
+const addToMyTeams = (teamCode, teamName, displayName, isCreator = false) => {
+  const teams = getMyTeams();
+  // Check if already exists
+  const existing = teams.find(t => t.code === teamCode);
+  if (existing) {
+    existing.name = teamName;
+    existing.displayName = displayName;
+    existing.isCreator = existing.isCreator || isCreator;
+  } else {
+    teams.push({ code: teamCode, name: teamName, displayName, isCreator });
+  }
+  localStorage.setItem('myTeams', JSON.stringify(teams));
+};
+
+/**
+ * Remove a team from user's team list
+ */
+const removeFromMyTeams = (teamCode) => {
+  const teams = getMyTeams().filter(t => t.code !== teamCode);
+  localStorage.setItem('myTeams', JSON.stringify(teams));
+  // Also clean up tokens
+  localStorage.removeItem(`team_${teamCode}_token`);
+  localStorage.removeItem(`team_${teamCode}_creator`);
+};
+
+/**
+ * Get current bracket data as encoded string for team submission
+ */
+const getCurrentBracketData = async () => {
+  return await encodePicks(picks);
+};
+
 // Export for use in page-specific scripts (using global scope)
 window.WorldCupPool = {
   // Data
@@ -476,6 +553,9 @@ window.WorldCupPool = {
   set thirdPlaceDragSourceId(val) { thirdPlaceDragSourceId = val; },
   get cachedThirdPlaceGroups() { return cachedThirdPlaceGroups; },
   set cachedThirdPlaceGroups(val) { cachedThirdPlaceGroups = val; },
+
+  // Constants
+  API_BASE_URL,
 
   // Functions
   loadData,
@@ -496,4 +576,14 @@ window.WorldCupPool = {
   createPickControls,
   getTeamAbbr,
   updateNavLinks,
+
+  // Team utilities
+  getTeamMemberToken,
+  setTeamMemberToken,
+  getTeamCreatorToken,
+  setTeamCreatorToken,
+  getMyTeams,
+  addToMyTeams,
+  removeFromMyTeams,
+  getCurrentBracketData,
 };

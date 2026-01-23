@@ -123,6 +123,7 @@
       renderGroups();
       renderKnockout();
       updateQRButtonVisibility();
+      updateTeamButtonVisibility();
     });
     pickCell.appendChild(pickGroupEl);
 
@@ -166,6 +167,7 @@
       renderGroups();
       renderKnockout();
       updateQRButtonVisibility();
+      updateTeamButtonVisibility();
     });
 
     // Update status dot
@@ -601,6 +603,7 @@
           WCP.persistPicks();
           renderKnockout();
           updateQRButtonVisibility();
+      updateTeamButtonVisibility();
         }
       });
 
@@ -766,6 +769,7 @@
     WCP.persistPicks();
     renderKnockout();
     updateQRButtonVisibility();
+      updateTeamButtonVisibility();
   };
 
   /**
@@ -785,6 +789,7 @@
     renderKnockout();
     WCP.updatePickSummary(pickSummaryEl, pickProgressEl);
     updateQRButtonVisibility();
+      updateTeamButtonVisibility();
   };
 
   /**
@@ -818,6 +823,7 @@
     renderKnockout();
     WCP.updatePickSummary(pickSummaryEl, pickProgressEl);
     updateQRButtonVisibility();
+      updateTeamButtonVisibility();
   };
 
   /**
@@ -963,6 +969,199 @@
   };
 
   /**
+   * Team Modal Functions
+   */
+  let teamQrInstance = null;
+
+  const openTeamModal = () => {
+    const modal = document.getElementById("team-modal");
+    const createForm = document.getElementById("team-create-form");
+    const successSection = document.getElementById("team-success");
+
+    // Reset to create form state
+    createForm.classList.remove("hidden");
+    successSection.classList.add("hidden");
+    document.getElementById("team-name-input").value = "";
+    document.getElementById("team-creator-name-input").value = "";
+
+    modal.classList.remove("hidden");
+    modal.classList.add("flex");
+  };
+
+  const closeTeamModal = () => {
+    const modal = document.getElementById("team-modal");
+    modal.classList.add("hidden");
+    modal.classList.remove("flex");
+  };
+
+  const showTeamSuccess = (teamCode, teamName) => {
+    const createForm = document.getElementById("team-create-form");
+    const successSection = document.getElementById("team-success");
+    const codeDisplay = document.getElementById("team-code-result");
+    const qrContainer = document.getElementById("team-success-qr");
+    const viewBtn = document.getElementById("team-view-btn");
+
+    // Hide form, show success
+    createForm.classList.add("hidden");
+    successSection.classList.remove("hidden");
+
+    // Set code and link
+    codeDisplay.value = teamCode;
+    viewBtn.href = `team.html?c=${teamCode}`;
+
+    // Generate QR code
+    qrContainer.innerHTML = "";
+    const shareUrl = `${window.location.origin}/team.html?c=${teamCode}`;
+    teamQrInstance = new QRCode(qrContainer, {
+      text: shareUrl,
+      width: 200,
+      height: 200,
+      colorDark: "#0f172a",
+      colorLight: "#ffffff",
+      correctLevel: QRCode.CorrectLevel.M,
+    });
+  };
+
+  const createTeam = async () => {
+    const teamName = document.getElementById("team-name-input").value.trim();
+    const creatorName = document.getElementById("team-creator-name-input").value.trim();
+    const createBtn = document.getElementById("team-create-btn");
+
+    // Validation
+    if (!teamName) {
+      alert("Please enter a team name");
+      return;
+    }
+    if (teamName.length > 50) {
+      alert("Team name must be 50 characters or less");
+      return;
+    }
+    if (!creatorName) {
+      alert("Please enter your display name");
+      return;
+    }
+    if (creatorName.length > 30) {
+      alert("Display name must be 30 characters or less");
+      return;
+    }
+
+    // Get bracket data
+    const bracketData = await WCP.getCurrentBracketData();
+    if (!bracketData || bracketData.length < 10) {
+      alert("Please make some bracket picks before creating a team");
+      return;
+    }
+
+    // Disable button and show loading
+    const originalText = createBtn.textContent;
+    createBtn.disabled = true;
+    createBtn.textContent = "Creating...";
+
+    try {
+      const response = await fetch(`${WCP.API_BASE_URL}/api/teams`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: teamName,
+          creator_name: creatorName,
+          bracket_data: bracketData,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.detail || "Failed to create team");
+      }
+
+      const result = await response.json();
+
+      // Save tokens and team info
+      WCP.setTeamCreatorToken(result.code, result.creator_token);
+      WCP.setTeamMemberToken(result.code, result.member_token);
+      WCP.addToMyTeams(result.code, result.name, creatorName, true);
+
+      // Show success state
+      showTeamSuccess(result.code, result.name);
+    } catch (error) {
+      console.error("Failed to create team:", error);
+      alert(error.message || "Failed to create team. Please try again.");
+    } finally {
+      createBtn.disabled = false;
+      createBtn.textContent = originalText;
+    }
+  };
+
+  const initTeamModal = () => {
+    const openBtn = document.getElementById("team-btn");
+    const closeBtn = document.getElementById("team-close-btn");
+    const modal = document.getElementById("team-modal");
+    const createBtn = document.getElementById("team-create-btn");
+    const copyCodeBtn = document.getElementById("team-copy-code-btn");
+    const downloadQrBtn = document.getElementById("team-download-qr-btn");
+
+    if (!openBtn) return; // Team feature not available on this page
+
+    openBtn.addEventListener("click", openTeamModal);
+    closeBtn.addEventListener("click", closeTeamModal);
+    createBtn.addEventListener("click", createTeam);
+
+    // Copy code button
+    copyCodeBtn?.addEventListener("click", () => {
+      const code = document.getElementById("team-code-result").value;
+      navigator.clipboard.writeText(code);
+      // Show brief feedback
+      const originalHTML = copyCodeBtn.innerHTML;
+      copyCodeBtn.innerHTML = '<svg class="h-5 w-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>';
+      setTimeout(() => { copyCodeBtn.innerHTML = originalHTML; }, 1500);
+    });
+
+    // Download QR button
+    downloadQrBtn?.addEventListener("click", () => {
+      const qrContainer = document.getElementById("team-success-qr");
+      const canvas = qrContainer.querySelector("canvas");
+      if (canvas) {
+        const link = document.createElement("a");
+        const code = document.getElementById("team-code-result").value;
+        link.download = `team-${code}-qr.png`;
+        link.href = canvas.toDataURL("image/png");
+        link.click();
+      }
+    });
+
+    // Close on backdrop click
+    modal.addEventListener("click", (e) => {
+      if (e.target === modal) closeTeamModal();
+    });
+
+    // Close on Escape key
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+        closeTeamModal();
+      }
+    });
+  };
+
+  /**
+   * Update Team button visibility based on picks
+   */
+  const updateTeamButtonVisibility = () => {
+    const teamBtn = document.getElementById("team-btn");
+    if (!teamBtn) return;
+
+    // Count picks (excluding metadata keys)
+    const groupPicksCount = Object.keys(WCP.picks).filter(
+      (k) => !["knockout", "thirdPlaceOrder", "standingsOrder"].includes(k)
+    ).length;
+    const knockoutPicksCount = Object.keys(WCP.picks.knockout || {}).length;
+
+    if (groupPicksCount > 0 || knockoutPicksCount > 0) {
+      teamBtn.classList.remove("hidden");
+    } else {
+      teamBtn.classList.add("hidden");
+    }
+  };
+
+  /**
    * Initialize the grid view
    */
   const init = async () => {
@@ -1012,6 +1211,10 @@
       // Initialize QR modal and show button if picks exist
       initQRModal();
       updateQRButtonVisibility();
+
+      // Initialize Team modal and show button if picks exist
+      initTeamModal();
+      updateTeamButtonVisibility();
 
       // Hide filter pane when user scrolls to group standings
       const groupFiltersEl = document.getElementById("group-filters");

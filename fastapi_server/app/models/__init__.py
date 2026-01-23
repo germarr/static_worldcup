@@ -7,6 +7,8 @@ from app.models.kalshi_market import KalshiMarket
 from app.models.kalshi_team_ranking import KalshiTeamRanking
 from app.models.kalshi_candlestick import KalshiCandlestick
 from app.models.kalshi_team_chance import KalshiTeamChance
+from app.models.pool_team import PoolTeam
+from app.models.pool_member import PoolMember
 
 __all__ = [
     "FifaTeam",
@@ -15,4 +17,6 @@ __all__ = [
     "KalshiTeamRanking",
     "KalshiCandlestick",
     "KalshiTeamChance",
+    "PoolTeam",
+    "PoolMember",
 ]
